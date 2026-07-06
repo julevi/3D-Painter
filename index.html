@@ -262,6 +262,126 @@
             margin: 8px 0;
         }
 
+        /* ── Color wheel (hue ring + saturation/value triangle) ── */
+        .color-wheel-wrap {
+            position: relative;
+            width: 220px;
+            height: 220px;
+            margin: 10px auto;
+        }
+
+        #color-wheel-canvas {
+            width: 220px;
+            height: 220px;
+            cursor: crosshair;
+            display: block;
+            touch-action: none;
+        }
+
+        #color-wheel-hue-marker,
+        #color-wheel-sv-marker {
+            position: absolute;
+            width: 16px; height: 16px;
+            margin: -8px 0 0 -8px;
+            border: 3px solid #fff;
+            border-radius: 50%;
+            box-shadow: 0 0 0 1.5px rgba(0,0,0,0.5);
+            pointer-events: none;
+        }
+
+        .color-preview-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 14px;
+        }
+
+        #color-swatch-current {
+            width: 40px; height: 40px;
+            border-radius: 8px;
+            border: 2px solid rgba(255,255,255,0.3);
+            flex-shrink: 0;
+        }
+
+        #color-hex-label {
+            font-size: 15px;
+            color: rgba(255,255,255,0.75);
+            font-variant-numeric: tabular-nums;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        /* ── Painting mode: bigger, kid-friendly UI ── */
+        .tool-icon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .hardness-row {
+            display: flex;
+            gap: 10px;
+            padding: 6px 14px 12px;
+        }
+
+        .hardness-btn {
+            width: 46px; height: 46px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: rgba(255,255,255,0.06);
+            color: #ccc;
+            transition: all 0.15s;
+        }
+
+        .hardness-btn:hover { background: rgba(255,255,255,0.14); }
+        .hardness-btn.active {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.25);
+            color: #fff;
+        }
+
+        #panel-painting .section-label {
+            font-size: 13px;
+            padding: 16px 14px 8px;
+        }
+
+        #panel-painting .sidebar-item {
+            padding: 12px 14px;
+            gap: 12px;
+        }
+
+        #panel-painting .sidebar-item span {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        #panel-painting .slider-row {
+            padding: 8px 14px;
+            gap: 10px;
+        }
+
+        #panel-painting .slider-row label {
+            font-size: 14px;
+        }
+
+        #panel-painting .slider-row .value {
+            font-size: 14px;
+            min-width: 32px;
+        }
+
+        #panel-painting .slider-row input[type="range"] {
+            height: 8px;
+        }
+
+        #panel-painting .slider-row input[type="range"]::-webkit-slider-thumb {
+            width: 20px;
+            height: 20px;
+        }
+
         /* ── Sidebar collapse ── */
         #sidebar-toggle {
             position: absolute;
@@ -526,6 +646,14 @@
         <img class="sidebar-logo" src="images/ACTVET_Logo.png" alt="ACTVET">
     </div>
 
+    <div class="tab-row" id="panel-tab-row">
+        <button class="tab-btn active" data-panel="inspector">Inspector</button>
+        <button class="tab-btn" data-panel="painting">Painting</button>
+    </div>
+
+    <div class="divider"></div>
+
+    <div id="panel-inspector">
     <div class="section-label">Wireframe</div>
     <div class="color-row" id="wireframe-colors">
         <div class="color-swatch" data-color="#ffffff" style="background:#fff"></div>
@@ -642,6 +770,99 @@
         <input type="range" id="rotate-speed" min="0.1" max="5" step="0.1" value="2">
         <span class="value" id="rotate-speed-val">2.0</span>
     </div>
+    </div>
+
+    <div id="panel-painting" style="display:none">
+        <div class="section-label">Tools</div>
+        <div class="sidebar-item active" data-tool="brush">
+            <svg class="tool-icon" viewBox="0 0 24 24"><g transform="rotate(45 12 12)">
+                <rect x="10" y="2" width="4" height="10" rx="1.5" fill="currentColor"/>
+                <rect x="9" y="11" width="6" height="4" rx="1" fill="currentColor" opacity="0.55"/>
+                <path d="M9 15 L15 15 L13 21 L11 21 Z" fill="currentColor"/>
+            </g></svg>
+            <span>Brush</span>
+        </div>
+        <div class="sidebar-item" data-tool="eraser">
+            <svg class="tool-icon" viewBox="0 0 24 24"><g transform="rotate(-20 12 12)">
+                <rect x="5" y="8" width="14" height="9" rx="2" fill="currentColor"/>
+                <rect x="5" y="12.5" width="14" height="4.5" fill="currentColor" opacity="0.5"/>
+            </g></svg>
+            <span>Eraser</span>
+        </div>
+        <div class="sidebar-item" data-tool="bucket">
+            <svg class="tool-icon" viewBox="0 0 24 24">
+                <g transform="rotate(-25 12 12)">
+                    <path d="M6 9 L18 9 L16.5 18 A2 2 0 0 1 14.5 20 L9.5 20 A2 2 0 0 1 7.5 18 Z" fill="currentColor"/>
+                    <rect x="6" y="7" width="12" height="2.5" rx="1.25" fill="currentColor"/>
+                </g>
+                <circle cx="18.5" cy="18.5" r="2.3" fill="currentColor"/>
+            </svg>
+            <span>Paint Bucket</span>
+        </div>
+        <div class="sidebar-item" data-tool="picker">
+            <svg class="tool-icon" viewBox="0 0 24 24"><g transform="rotate(45 12 12)">
+                <rect x="9.5" y="2" width="5" height="5" rx="2.5" fill="currentColor"/>
+                <rect x="11" y="7" width="2" height="9" fill="currentColor"/>
+                <path d="M9.8 16 L14.2 16 L12 21.5 Z" fill="currentColor"/>
+            </g></svg>
+            <span>Color Picker</span>
+        </div>
+        <div class="slider-row">
+            <label>Brush Size</label>
+            <input type="range" id="brush-size" min="4" max="160" step="1" value="40">
+            <span class="value" id="brush-size-val">40</span>
+        </div>
+
+        <div class="section-label" id="brush-hardness-label">Brush Hardness</div>
+        <div class="hardness-row" id="brush-hardness-row">
+            <div class="hardness-btn active" data-hardness="hard" title="Hard">
+                <svg class="tool-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/></svg>
+            </div>
+            <div class="hardness-btn" data-hardness="mid" title="Mid">
+                <svg class="tool-icon" viewBox="0 0 24 24">
+                    <defs><radialGradient id="brushMidGrad"><stop offset="0%" stop-color="currentColor" stop-opacity="1"/><stop offset="55%" stop-color="currentColor" stop-opacity="1"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
+                    <circle cx="12" cy="12" r="10.5" fill="url(#brushMidGrad)"/>
+                </svg>
+            </div>
+            <div class="hardness-btn" data-hardness="soft" title="Soft">
+                <svg class="tool-icon" viewBox="0 0 24 24">
+                    <defs><radialGradient id="brushSoftGrad"><stop offset="0%" stop-color="currentColor" stop-opacity="0.9"/><stop offset="20%" stop-color="currentColor" stop-opacity="0.65"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
+                    <circle cx="12" cy="12" r="11.5" fill="url(#brushSoftGrad)"/>
+                </svg>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-label" id="bucket-mode-label">Bucket Fill Mode</div>
+        <div id="bucket-mode-row">
+            <div class="sidebar-item active" data-bucket-mode="full">
+                <svg class="tool-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor"/></svg>
+                <span>Full Object</span>
+            </div>
+            <div class="sidebar-item" data-bucket-mode="face">
+                <svg class="tool-icon" viewBox="0 0 24 24"><path d="M12 4 L21 20 L3 20 Z" fill="currentColor"/></svg>
+                <span>Face</span>
+            </div>
+            <div class="sidebar-item" data-bucket-mode="shell">
+                <svg class="tool-icon" viewBox="0 0 24 24"><path d="M5 8 Q3 12 6 16 Q9 21 14 19 Q21 17 20 11 Q19 5 13 5 Q7 4 5 8 Z" fill="currentColor"/></svg>
+                <span>UV Shell</span>
+            </div>
+        </div>
+
+        <div class="divider"></div>
+
+        <div class="section-label">Color</div>
+        <div class="color-wheel-wrap">
+            <canvas id="color-wheel-canvas" width="220" height="220"></canvas>
+            <div id="color-wheel-hue-marker"></div>
+            <div id="color-wheel-sv-marker"></div>
+        </div>
+        <div class="color-preview-row">
+            <div id="color-swatch-current"></div>
+            <span id="color-hex-label">#FF2D2D</span>
+        </div>
+    </div>
 </div>
 
 <!-- Model switcher -->
@@ -704,6 +925,7 @@
     <strong>Controls</strong><br>
     <kbd>LMB</kbd> / Touch: Orbit<br>
     <kbd>RMB</kbd> / 2-finger: Pan<br>
+    <kbd>MMB</kbd> Pan<br>
     <kbd>Scroll</kbd> / Pinch: Zoom<br>
     <kbd>1-9</kbd> Switch models<br>
     <kbd>W</kbd> Toggle wireframe<br>
@@ -714,7 +936,8 @@
     <kbd>G</kbd> Toggle grid<br>
     <kbd>Space</kbd> Play/Pause animation<br>
     <kbd>R</kbd> Reset camera<br>
-    Use Model 1-9 to switch preset models
+    Use Model 1-9 to switch preset models<br>
+    <strong>Painting tab:</strong> LMB paint/erase/fill, RMB orbit, MMB pan
 </div>
 
 <!-- Three.js and loaders from CDN -->
@@ -987,6 +1210,18 @@ const state = {
     wireframeWidth: 1,
     vertexNormalsVisible: false,
     uvCheckerVisible: false,
+    activePanel: 'inspector',
+    paintTool: 'brush',
+    bucketMode: 'full',
+    brushSize: 40,
+    brushHardness: 'hard',
+    paintColor: '#ff2d2d',
+    paintHue: 3,
+    paintSat: 0.82,
+    paintVal: 1,
+    paintData: new WeakMap(),
+    isPaintingStroke: false,
+    lastPaintPoint: null,
     normalHelpers: [],
     wireframeMeshes: [],
     wireframeMaterials: [],
@@ -1711,6 +1946,8 @@ function getPlayableAnimations(animations, config = {}) {
 }
 
 async function showModel(index) {
+    state.isPaintingStroke = false;
+    state.lastPaintPoint = null;
     const model = await ensureModelLoaded(index).catch((error) => {
         console.error(`Could not show model ${index + 1}:`, error);
         document.getElementById('loading-text').textContent = `Could not load ${state.modelConfigs[index]?.label || `Model ${index + 1}`}.`;
@@ -1734,6 +1971,7 @@ async function showModel(index) {
     setupAnimations(model);
     updateStats(model);
     applyRenderMode();
+    applyPaintingGreyOverride();
     fitCamera(model, state.modelConfigs[index]);
     drawUVMap();
 
@@ -2292,8 +2530,704 @@ function applyUVChecker() {
     });
 }
 
+// ─── Texture Painting ───
+const PAINT_TEXTURE_SIZE = 1024;
+const PAINT_BASE_GREY = '#d6d6d2';
+
+function hsvToRgb(h, s, v) {
+    const c = v * s;
+    const x = c * (1 - Math.abs(((h / 60) % 2) - 1));
+    const m = v - c;
+    let r = 0, g = 0, b = 0;
+    if (h < 60) { r = c; g = x; b = 0; }
+    else if (h < 120) { r = x; g = c; b = 0; }
+    else if (h < 180) { r = 0; g = c; b = x; }
+    else if (h < 240) { r = 0; g = x; b = c; }
+    else if (h < 300) { r = x; g = 0; b = c; }
+    else { r = c; g = 0; b = x; }
+    return [
+        Math.round((r + m) * 255),
+        Math.round((g + m) * 255),
+        Math.round((b + m) * 255)
+    ];
+}
+
+function rgbToHsv(r, g, b) {
+    r /= 255; g /= 255; b /= 255;
+    const max = Math.max(r, g, b), min = Math.min(r, g, b);
+    const d = max - min;
+    let h = 0;
+    if (d !== 0) {
+        if (max === r) h = ((g - b) / d) % 6;
+        else if (max === g) h = (b - r) / d + 2;
+        else h = (r - g) / d + 4;
+        h *= 60;
+        if (h < 0) h += 360;
+    }
+    const s = max === 0 ? 0 : d / max;
+    return [h, s, max];
+}
+
+function rgbToHex(r, g, b) {
+    return '#' + [r, g, b].map(v => v.toString(16).padStart(2, '0')).join('');
+}
+
+function hexToRgb(hex) {
+    const n = parseInt(hex.replace('#', ''), 16);
+    return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
+}
+
+function getPaintCanonicalMaterial(mesh, materialIndex) {
+    const model = state.currentModel;
+    const record = model && state.originalMaterials.get(model)?.get(mesh);
+    if (!record) return null;
+    return Array.isArray(record.display) ? (record.display[materialIndex] || record.display[0]) : record.display;
+}
+
+// Note: loaders (notably GLTFLoader) can share one material object across several
+// mesh nodes. Painting such a material paints every mesh that uses it.
+// Painting mode always paints on top of a flat grey base (see applyPaintingGreyOverride) —
+// the model's real textures are hidden while painting and restored when leaving the tab.
+function getOrCreatePaintCanvas(material) {
+    let data = state.paintData.get(material);
+    if (data) return data;
+
+    const size = PAINT_TEXTURE_SIZE;
+    const canvas = document.createElement('canvas');
+    canvas.width = size; canvas.height = size;
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = PAINT_BASE_GREY;
+    ctx.fillRect(0, 0, size, size);
+
+    const baseCanvas = document.createElement('canvas');
+    baseCanvas.width = size; baseCanvas.height = size;
+    baseCanvas.getContext('2d').drawImage(canvas, 0, 0);
+
+    const texture = new THREE.CanvasTexture(canvas);
+    texture.colorSpace = THREE.SRGBColorSpace;
+    texture.needsUpdate = true;
+
+    material.map = texture;
+    material.color?.set(0xffffff);
+    material.needsUpdate = true;
+
+    data = { canvas, ctx, baseCanvas, texture, size };
+    state.paintData.set(material, data);
+    return data;
+}
+
+function syncLiveMaterial(mesh, materialIndex, canonicalMaterial) {
+    const data = state.paintData.get(canonicalMaterial);
+    if (!data) return;
+    const live = Array.isArray(mesh.material) ? mesh.material[materialIndex] : mesh.material;
+    if (!live) return;
+    live.map = data.texture;
+    live.color?.set(0xffffff);
+    live.needsUpdate = true;
+}
+
+// Forces every mesh in the current model to plain grey while Painting mode is active
+// (regardless of its real textures), except meshes that already have paint on them.
+function applyPaintingGreyOverride() {
+    if (state.activePanel !== 'painting' || !state.currentModel) return;
+    state.currentModel.traverse((child) => {
+        if (!child.isMesh) return;
+        const record = state.originalMaterials.get(state.currentModel)?.get(child);
+        if (!record) return;
+        const canonicalArray = Array.isArray(record.display) ? record.display : [record.display];
+        const liveArray = Array.isArray(child.material) ? child.material : [child.material];
+        canonicalArray.forEach((canonicalMaterial, i) => {
+            const live = liveArray[i];
+            if (!live) return;
+            const data = state.paintData.get(canonicalMaterial);
+            if (data) {
+                live.map = data.texture;
+                live.color?.set(0xffffff);
+            } else {
+                live.map = null;
+                live.color?.set(PAINT_BASE_GREY);
+            }
+            live.needsUpdate = true;
+        });
+    });
+}
+
+// Soft, feathered stamp: opaque core fading to transparent at the edge, so brush strokes
+// blend smoothly instead of leaving a hard-edged circle.
+function stampAt(data, x, y, radius, color, erase) {
+    if (erase) {
+        stampErase(data, x, y, radius);
+    } else {
+        stampBrush(data, x, y, radius, color);
+    }
+}
+
+const BRUSH_HARDNESS_STOPS = {
+    hard: [[0, 1], [0.65, 1], [1, 0]],
+    mid: [[0, 1], [0.35, 1], [1, 0]],
+    soft: [[0, 0.85], [0.08, 0.7], [1, 0]]
+};
+
+function stampBrush(data, x, y, radius, color) {
+    const ctx = data.ctx;
+    const [r, g, b] = hexToRgb(color);
+    const stops = BRUSH_HARDNESS_STOPS[state.brushHardness] || BRUSH_HARDNESS_STOPS.hard;
+    const grad = ctx.createRadialGradient(x, y, 0, x, y, radius);
+    stops.forEach(([offset, alpha]) => grad.addColorStop(offset, `rgba(${r},${g},${b},${alpha})`));
+    ctx.save();
+    ctx.fillStyle = grad;
+    ctx.beginPath();
+    ctx.arc(x, y, radius, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.restore();
+}
+
+function stampErase(data, x, y, radius) {
+    const r = Math.ceil(radius) + 1;
+    const sx = Math.max(0, Math.floor(x - r));
+    const sy = Math.max(0, Math.floor(y - r));
+    const ex = Math.min(data.size, Math.ceil(x + r));
+    const ey = Math.min(data.size, Math.ceil(y + r));
+    const w = ex - sx, h = ey - sy;
+    if (w <= 0 || h <= 0) return;
+
+    const temp = document.createElement('canvas');
+    temp.width = w; temp.height = h;
+    const tctx = temp.getContext('2d');
+    tctx.drawImage(data.baseCanvas, sx, sy, w, h, 0, 0, w, h);
+    tctx.globalCompositeOperation = 'destination-in';
+    const grad = tctx.createRadialGradient(x - sx, y - sy, 0, x - sx, y - sy, radius);
+    grad.addColorStop(0, 'rgba(0,0,0,1)');
+    grad.addColorStop(0.65, 'rgba(0,0,0,1)');
+    grad.addColorStop(1, 'rgba(0,0,0,0)');
+    tctx.fillStyle = grad;
+    tctx.fillRect(0, 0, w, h);
+    data.ctx.drawImage(temp, sx, sy);
+}
+
+function paintSegment(data, x0, y0, x1, y1, radius, color, erase) {
+    const dist = Math.hypot(x1 - x0, y1 - y0);
+    const step = Math.max(radius * 0.35, 1);
+    const steps = Math.max(1, Math.ceil(dist / step));
+    for (let i = 0; i <= steps; i++) {
+        const t = i / steps;
+        stampAt(data, x0 + (x1 - x0) * t, y0 + (y1 - y0) * t, radius, color, erase);
+    }
+    data.texture.needsUpdate = true;
+}
+
+function drawUVTriangle(ctx, uv, a, b, c, size) {
+    const ax = uv.getX(a) * size, ay = (1 - uv.getY(a)) * size;
+    const bx = uv.getX(b) * size, by = (1 - uv.getY(b)) * size;
+    const cx = uv.getX(c) * size, cy = (1 - uv.getY(c)) * size;
+    ctx.beginPath();
+    ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.lineTo(cx, cy);
+    ctx.closePath();
+    ctx.fill();
+}
+
+function getUVShellGroups(geometry, materialIndex) {
+    geometry.userData.uvShells = geometry.userData.uvShells || {};
+    if (geometry.userData.uvShells[materialIndex]) return geometry.userData.uvShells[materialIndex];
+
+    const uv = geometry.attributes.uv;
+    const index = geometry.index;
+    const triCount = index ? index.count / 3 : geometry.attributes.position.count / 3;
+    const getVertex = (tri, corner) => index ? index.getX(tri * 3 + corner) : tri * 3 + corner;
+
+    const groups = geometry.groups && geometry.groups.length ? geometry.groups : null;
+    const materialIndexOfTri = (tri) => {
+        if (!groups) return 0;
+        const triStart = tri * 3;
+        for (const g of groups) {
+            if (triStart >= g.start && triStart < g.start + g.count) return g.materialIndex ?? 0;
+        }
+        return 0;
+    };
+
+    const uvKey = (i) => `${Math.round(uv.getX(i) * 100000)}_${Math.round(uv.getY(i) * 100000)}`;
+
+    const parent = new Int32Array(triCount);
+    for (let i = 0; i < triCount; i++) parent[i] = i;
+    function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
+    function union(a, b) { a = find(a); b = find(b); if (a !== b) parent[a] = b; }
+
+    const faces = new Array(triCount);
+    const edgeMap = new Map();
+
+    for (let t = 0; t < triCount; t++) {
+        const a = getVertex(t, 0), b = getVertex(t, 1), c = getVertex(t, 2);
+        faces[t] = [a, b, c];
+        if (materialIndexOfTri(t) !== materialIndex) continue;
+
+        const keys = [uvKey(a), uvKey(b), uvKey(c)];
+        for (const [i, j] of [[0, 1], [1, 2], [2, 0]]) {
+            const edgeKey = keys[i] < keys[j] ? `${keys[i]}|${keys[j]}` : `${keys[j]}|${keys[i]}`;
+            if (edgeMap.has(edgeKey)) union(t, edgeMap.get(edgeKey));
+            else edgeMap.set(edgeKey, t);
+        }
+    }
+
+    const shells = new Map();
+    for (let t = 0; t < triCount; t++) {
+        if (materialIndexOfTri(t) !== materialIndex) continue;
+        const root = find(t);
+        if (!shells.has(root)) shells.set(root, []);
+        shells.get(root).push(t);
+    }
+
+    const result = { faces, find, shells };
+    geometry.userData.uvShells[materialIndex] = result;
+    return result;
+}
+
+// Undo history: one snapshot per brush stroke / bucket fill, capped so memory stays bounded.
+const PAINT_UNDO_LIMIT = 10;
+const paintUndoStack = [];
+
+function pushPaintUndoSnapshot(canonicalMaterial) {
+    const data = state.paintData.get(canonicalMaterial);
+    if (!data) return;
+    const snapshot = data.ctx.getImageData(0, 0, data.size, data.size);
+    paintUndoStack.push({ material: canonicalMaterial, imageData: snapshot });
+    if (paintUndoStack.length > PAINT_UNDO_LIMIT) paintUndoStack.shift();
+}
+
+function undoPaint() {
+    const entry = paintUndoStack.pop();
+    if (!entry) return;
+    const data = state.paintData.get(entry.material);
+    if (!data) return;
+    data.ctx.putImageData(entry.imageData, 0, 0);
+    data.texture.needsUpdate = true;
+}
+
+function bucketFill(hit) {
+    const mesh = hit.object;
+    const materialIndex = hit.face?.materialIndex || 0;
+    const canonicalMaterial = getPaintCanonicalMaterial(mesh, materialIndex);
+    if (!canonicalMaterial) return;
+    const data = getOrCreatePaintCanvas(canonicalMaterial);
+    syncLiveMaterial(mesh, materialIndex, canonicalMaterial);
+    pushPaintUndoSnapshot(canonicalMaterial);
+
+    const ctx = data.ctx;
+    ctx.fillStyle = state.paintColor;
+
+    if (state.bucketMode === 'full') {
+        ctx.fillRect(0, 0, data.size, data.size);
+    } else if (state.bucketMode === 'face') {
+        const uv = mesh.geometry.attributes.uv;
+        const face = hit.face;
+        drawUVTriangle(ctx, uv, face.a, face.b, face.c, data.size);
+    } else if (state.bucketMode === 'shell') {
+        const groups = getUVShellGroups(mesh.geometry, materialIndex);
+        const root = groups.find(hit.faceIndex);
+        const shellFaces = groups.shells.get(root) || [];
+        const uv = mesh.geometry.attributes.uv;
+        shellFaces.forEach((t) => {
+            const [a, b, c] = groups.faces[t];
+            drawUVTriangle(ctx, uv, a, b, c, data.size);
+        });
+    }
+
+    data.texture.needsUpdate = true;
+}
+
+function applyPaintStroke(hit, isStart) {
+    const mesh = hit.object;
+    const materialIndex = hit.face?.materialIndex || 0;
+    const canonicalMaterial = getPaintCanonicalMaterial(mesh, materialIndex);
+    if (!canonicalMaterial) return;
+    const data = getOrCreatePaintCanvas(canonicalMaterial);
+    syncLiveMaterial(mesh, materialIndex, canonicalMaterial);
+
+    const x = hit.uv.x * data.size;
+    const y = (1 - hit.uv.y) * data.size;
+    const radius = state.brushSize / 2;
+    const erase = state.paintTool === 'eraser';
+
+    if (isStart || !state.lastPaintPoint || state.lastPaintPoint.material !== canonicalMaterial) {
+        pushPaintUndoSnapshot(canonicalMaterial);
+        stampAt(data, x, y, radius, state.paintColor, erase);
+        data.texture.needsUpdate = true;
+    } else {
+        paintSegment(data, state.lastPaintPoint.x, state.lastPaintPoint.y, x, y, radius, state.paintColor, erase);
+    }
+    state.lastPaintPoint = { x, y, material: canonicalMaterial };
+}
+
+function pickColorAt(hit) {
+    const mesh = hit.object;
+    const materialIndex = hit.face?.materialIndex || 0;
+    const canonicalMaterial = getPaintCanonicalMaterial(mesh, materialIndex);
+    if (!canonicalMaterial) return;
+    const data = getOrCreatePaintCanvas(canonicalMaterial);
+    syncLiveMaterial(mesh, materialIndex, canonicalMaterial);
+
+    const px = Math.min(data.size - 1, Math.max(0, Math.floor(hit.uv.x * data.size)));
+    const py = Math.min(data.size - 1, Math.max(0, Math.floor((1 - hit.uv.y) * data.size)));
+    const [r, g, b] = data.ctx.getImageData(px, py, 1, 1).data;
+    setPaintColor(rgbToHex(r, g, b));
+}
+
+function setPaintColor(hex) {
+    state.paintColor = hex;
+    const [r, g, b] = hexToRgb(hex);
+    const [h, s, v] = rgbToHsv(r, g, b);
+    state.paintHue = h;
+    state.paintSat = s;
+    state.paintVal = v;
+    renderColorWheel();
+    updateColorUI();
+}
+
+// Ring geometry helpers (hue ring + inscribed saturation/value triangle,
+// the classic GIMP/Photoshop-style wheel).
+function getWheelGeometry(size) {
+    const cx = size / 2, cy = size / 2;
+    const outerR = size / 2 - 2;
+    const innerR = outerR * 0.78;
+    const triR = innerR - 4;
+    return { cx, cy, outerR, innerR, triR };
+}
+
+function triangleVertices(hueDeg, cx, cy, r) {
+    const hueRad = hueDeg * Math.PI / 180;
+    const a1 = hueRad, a2 = hueRad + (2 * Math.PI / 3), a3 = hueRad + (4 * Math.PI / 3);
+    return {
+        color: { x: cx + Math.cos(a1) * r, y: cy + Math.sin(a1) * r },
+        white: { x: cx + Math.cos(a2) * r, y: cy + Math.sin(a2) * r },
+        black: { x: cx + Math.cos(a3) * r, y: cy + Math.sin(a3) * r }
+    };
+}
+
+function barycentricUVW(p, a, b, c) {
+    const v0x = b.x - a.x, v0y = b.y - a.y;
+    const v1x = c.x - a.x, v1y = c.y - a.y;
+    const v2x = p.x - a.x, v2y = p.y - a.y;
+    const d00 = v0x * v0x + v0y * v0y;
+    const d01 = v0x * v1x + v0y * v1y;
+    const d11 = v1x * v1x + v1y * v1y;
+    const d20 = v2x * v0x + v2y * v0y;
+    const d21 = v2x * v1x + v2y * v1y;
+    const denom = d00 * d11 - d01 * d01;
+    const v = (d11 * d20 - d01 * d21) / denom;
+    const w = (d00 * d21 - d01 * d20) / denom;
+    const u = 1 - v - w;
+    return { u, v, w };
+}
+
+function pointToSV(p, hueDeg, cx, cy, r) {
+    const tri = triangleVertices(hueDeg, cx, cy, r);
+    let { u, v, w } = barycentricUVW(p, tri.color, tri.white, tri.black);
+    u = Math.max(0, u); v = Math.max(0, v); w = Math.max(0, w);
+    const sum = (u + v + w) || 1;
+    u /= sum; v /= sum; w /= sum;
+    const value = u + v;
+    const sat = value > 1e-6 ? u / value : 0;
+    return { sat, value };
+}
+
+function svToPoint(sat, value, hueDeg, cx, cy, r) {
+    const tri = triangleVertices(hueDeg, cx, cy, r);
+    const u = value * sat;
+    const v = value * (1 - sat);
+    const w = 1 - value;
+    return {
+        x: u * tri.color.x + v * tri.white.x + w * tri.black.x,
+        y: u * tri.color.y + v * tri.white.y + w * tri.black.y
+    };
+}
+
+let hueRingBitmap = null;
+
+function getHueRingBitmap(size) {
+    if (hueRingBitmap) return hueRingBitmap;
+    const { cx, cy, outerR, innerR } = getWheelGeometry(size);
+    const off = document.createElement('canvas');
+    off.width = size; off.height = size;
+    const ctx = off.getContext('2d');
+    const img = ctx.createImageData(size, size);
+
+    for (let y = 0; y < size; y++) {
+        for (let x = 0; x < size; x++) {
+            const dx = x - cx, dy = y - cy;
+            const dist = Math.hypot(dx, dy);
+            const idx = (y * size + x) * 4;
+            if (dist >= innerR && dist <= outerR) {
+                const hue = (Math.atan2(dy, dx) * 180 / Math.PI + 360) % 360;
+                const [r, g, b] = hsvToRgb(hue, 1, 1);
+                img.data[idx] = r; img.data[idx + 1] = g; img.data[idx + 2] = b; img.data[idx + 3] = 255;
+            }
+        }
+    }
+    ctx.putImageData(img, 0, 0);
+    hueRingBitmap = off;
+    return off;
+}
+
+function drawSVTriangle(ctx, size, hueDeg) {
+    const { cx, cy, triR } = getWheelGeometry(size);
+    const tri = triangleVertices(hueDeg, cx, cy, triR);
+
+    ctx.save();
+    ctx.beginPath();
+    ctx.moveTo(tri.color.x, tri.color.y);
+    ctx.lineTo(tri.white.x, tri.white.y);
+    ctx.lineTo(tri.black.x, tri.black.y);
+    ctx.closePath();
+    ctx.clip();
+
+    const [r, g, b] = hsvToRgb(hueDeg, 1, 1);
+    ctx.fillStyle = `rgb(${r},${g},${b})`;
+    ctx.fillRect(0, 0, size, size);
+
+    const midBlackColor = { x: (tri.black.x + tri.color.x) / 2, y: (tri.black.y + tri.color.y) / 2 };
+    const whiteGrad = ctx.createLinearGradient(tri.white.x, tri.white.y, midBlackColor.x, midBlackColor.y);
+    whiteGrad.addColorStop(0, 'rgba(255,255,255,1)');
+    whiteGrad.addColorStop(1, 'rgba(255,255,255,0)');
+    ctx.fillStyle = whiteGrad;
+    ctx.fillRect(0, 0, size, size);
+
+    const midWhiteColor = { x: (tri.white.x + tri.color.x) / 2, y: (tri.white.y + tri.color.y) / 2 };
+    const blackGrad = ctx.createLinearGradient(tri.black.x, tri.black.y, midWhiteColor.x, midWhiteColor.y);
+    blackGrad.addColorStop(0, 'rgba(0,0,0,1)');
+    blackGrad.addColorStop(1, 'rgba(0,0,0,0)');
+    ctx.fillStyle = blackGrad;
+    ctx.fillRect(0, 0, size, size);
+
+    ctx.restore();
+}
+
+function updateColorUI() {
+    document.getElementById('color-swatch-current').style.background = state.paintColor;
+    document.getElementById('color-hex-label').textContent = state.paintColor.toUpperCase();
+
+    const canvas = document.getElementById('color-wheel-canvas');
+    const size = canvas.width;
+    const { cx, cy, outerR, innerR, triR } = getWheelGeometry(size);
+
+    const ringMidR = (innerR + outerR) / 2;
+    const hueRad = state.paintHue * Math.PI / 180;
+    const hueMarker = document.getElementById('color-wheel-hue-marker');
+    hueMarker.style.left = `${cx + Math.cos(hueRad) * ringMidR}px`;
+    hueMarker.style.top = `${cy + Math.sin(hueRad) * ringMidR}px`;
+
+    const svPoint = svToPoint(state.paintSat, state.paintVal, state.paintHue, cx, cy, triR);
+    const svMarker = document.getElementById('color-wheel-sv-marker');
+    svMarker.style.left = `${svPoint.x}px`;
+    svMarker.style.top = `${svPoint.y}px`;
+}
+
+function renderColorWheel() {
+    const canvas = document.getElementById('color-wheel-canvas');
+    const ctx = canvas.getContext('2d');
+    const size = canvas.width;
+    ctx.clearRect(0, 0, size, size);
+    ctx.drawImage(getHueRingBitmap(size), 0, 0);
+    drawSVTriangle(ctx, size, state.paintHue);
+}
+
+let wheelDragMode = null;
+
+function getWheelLocalPoint(e) {
+    const canvas = document.getElementById('color-wheel-canvas');
+    const rect = canvas.getBoundingClientRect();
+    const size = canvas.width;
+    return {
+        x: (e.clientX - rect.left) * (size / rect.width),
+        y: (e.clientY - rect.top) * (size / rect.height)
+    };
+}
+
+function handleWheelPointer(p) {
+    const canvas = document.getElementById('color-wheel-canvas');
+    const size = canvas.width;
+    const { cx, cy, innerR, triR } = getWheelGeometry(size);
+
+    if (wheelDragMode === 'hue') {
+        state.paintHue = (Math.atan2(p.y - cy, p.x - cx) * 180 / Math.PI + 360) % 360;
+        renderColorWheel();
+    } else if (wheelDragMode === 'sv') {
+        const { sat, value } = pointToSV(p, state.paintHue, cx, cy, triR);
+        state.paintSat = sat;
+        state.paintVal = value;
+    }
+
+    const [r, g, b] = hsvToRgb(state.paintHue, state.paintSat, state.paintVal);
+    state.paintColor = rgbToHex(r, g, b);
+    updateColorUI();
+}
+
+function startWheelDrag(e) {
+    const canvas = document.getElementById('color-wheel-canvas');
+    const p = getWheelLocalPoint(e);
+    const size = canvas.width;
+    const { cx, cy, innerR } = getWheelGeometry(size);
+    const dist = Math.hypot(p.x - cx, p.y - cy);
+    wheelDragMode = dist >= innerR ? 'hue' : 'sv';
+    canvas.setPointerCapture(e.pointerId);
+    handleWheelPointer(p);
+}
+
+// Middle-click always pans the camera; scroll wheel still zooms regardless of this mapping.
+const INSPECTOR_MOUSE_BUTTONS = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.PAN, RIGHT: THREE.MOUSE.PAN };
+const PAINTING_MOUSE_BUTTONS = { LEFT: null, MIDDLE: THREE.MOUSE.PAN, RIGHT: THREE.MOUSE.ROTATE };
+const INSPECTOR_TOUCHES = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+const PAINTING_TOUCHES = { ONE: null, TWO: THREE.TOUCH.DOLLY_PAN };
+
+function setActivePanel(panel) {
+    state.activePanel = panel;
+    document.getElementById('panel-inspector').style.display = panel === 'inspector' ? '' : 'none';
+    document.getElementById('panel-painting').style.display = panel === 'painting' ? '' : 'none';
+    document.querySelectorAll('.tab-btn[data-panel]').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.panel === panel);
+    });
+
+    controls.mouseButtons = panel === 'painting' ? PAINTING_MOUSE_BUTTONS : INSPECTOR_MOUSE_BUTTONS;
+    controls.touches = panel === 'painting' ? PAINTING_TOUCHES : INSPECTOR_TOUCHES;
+
+    if (panel === 'painting' && state.renderMode !== 'final' && state.renderMode !== 'nopost') {
+        state.renderMode = 'final';
+        document.querySelectorAll('#panel-inspector .sidebar-item[data-mode]').forEach(si => {
+            if (!toggleModes.includes(si.dataset.mode)) si.classList.toggle('active', si.dataset.mode === 'final');
+        });
+    }
+    applyRenderMode();
+    if (panel === 'painting') applyPaintingGreyOverride();
+}
+
+function setPaintTool(tool) {
+    state.paintTool = tool;
+    document.querySelectorAll('#panel-painting [data-tool]').forEach(item => {
+        item.classList.toggle('active', item.dataset.tool === tool);
+    });
+    document.getElementById('bucket-mode-label').style.display = tool === 'bucket' ? '' : 'none';
+    document.getElementById('bucket-mode-row').style.display = tool === 'bucket' ? '' : 'none';
+    document.getElementById('brush-hardness-label').style.display = tool === 'brush' ? '' : 'none';
+    document.getElementById('brush-hardness-row').style.display = tool === 'brush' ? '' : 'none';
+}
+
+function setBucketMode(mode) {
+    state.bucketMode = mode;
+    document.querySelectorAll('#panel-painting [data-bucket-mode]').forEach(item => {
+        item.classList.toggle('active', item.dataset.bucketMode === mode);
+    });
+}
+
+function setBrushHardness(mode) {
+    state.brushHardness = mode;
+    document.querySelectorAll('#panel-painting [data-hardness]').forEach(item => {
+        item.classList.toggle('active', item.dataset.hardness === mode);
+    });
+}
+
+const paintRaycaster = new THREE.Raycaster();
+const paintPointerNDC = new THREE.Vector2();
+const paintNormalMatrix = new THREE.Matrix3();
+const paintWorldNormal = new THREE.Vector3();
+
+// Skips any hit whose face points away from the camera, so painting never bleeds
+// through onto backfaces/surfaces hidden behind the visible side of the mesh.
+function getPaintHit(clientX, clientY) {
+    if (!state.currentModel) return null;
+    const rect = renderer.domElement.getBoundingClientRect();
+    paintPointerNDC.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+    paintPointerNDC.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+    paintRaycaster.setFromCamera(paintPointerNDC, camera);
+    const hits = paintRaycaster.intersectObject(state.currentModel, true);
+    const rayDir = paintRaycaster.ray.direction;
+
+    for (const hit of hits) {
+        if (!hit.object.isMesh || !hit.uv || !hit.face) continue;
+        paintNormalMatrix.getNormalMatrix(hit.object.matrixWorld);
+        paintWorldNormal.copy(hit.face.normal).applyMatrix3(paintNormalMatrix).normalize();
+        if (paintWorldNormal.dot(rayDir) < 0) return hit;
+    }
+    return null;
+}
+
+function setupPaintControls() {
+    const canvas = renderer.domElement;
+
+    canvas.addEventListener('pointerdown', (e) => {
+        if (state.activePanel !== 'painting' || e.button !== 0) return;
+        const hit = getPaintHit(e.clientX, e.clientY);
+        if (!hit) return;
+        e.preventDefault();
+
+        if (state.paintTool === 'picker') {
+            pickColorAt(hit);
+            return;
+        }
+        if (state.paintTool === 'bucket') {
+            bucketFill(hit);
+            return;
+        }
+
+        state.isPaintingStroke = true;
+        state.lastPaintPoint = null;
+        canvas.setPointerCapture(e.pointerId);
+        applyPaintStroke(hit, true);
+    });
+
+    canvas.addEventListener('pointermove', (e) => {
+        if (!state.isPaintingStroke) return;
+        const hit = getPaintHit(e.clientX, e.clientY);
+        if (!hit) return;
+        applyPaintStroke(hit, false);
+    });
+
+    ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => {
+        canvas.addEventListener(type, () => {
+            state.isPaintingStroke = false;
+            state.lastPaintPoint = null;
+        });
+    });
+
+    document.querySelectorAll('.tab-btn[data-panel]').forEach(btn => {
+        btn.addEventListener('click', () => setActivePanel(btn.dataset.panel));
+    });
+
+    document.querySelectorAll('#panel-painting [data-tool]').forEach(item => {
+        item.addEventListener('click', () => setPaintTool(item.dataset.tool));
+    });
+
+    document.querySelectorAll('#panel-painting [data-bucket-mode]').forEach(item => {
+        item.addEventListener('click', () => setBucketMode(item.dataset.bucketMode));
+    });
+
+    document.querySelectorAll('#panel-painting [data-hardness]').forEach(item => {
+        item.addEventListener('click', () => setBrushHardness(item.dataset.hardness));
+    });
+
+    document.getElementById('brush-size').addEventListener('input', (e) => {
+        state.brushSize = parseFloat(e.target.value);
+        document.getElementById('brush-size-val').textContent = state.brushSize;
+    });
+
+    const wheel = document.getElementById('color-wheel-canvas');
+    wheel.addEventListener('pointerdown', (e) => {
+        startWheelDrag(e);
+    });
+    wheel.addEventListener('pointermove', (e) => {
+        if (wheelDragMode) handleWheelPointer(getWheelLocalPoint(e));
+    });
+    ['pointerup', 'pointercancel'].forEach(type => {
+        wheel.addEventListener(type, () => { wheelDragMode = null; });
+    });
+
+    renderColorWheel();
+    setBucketMode(state.bucketMode);
+    setBrushHardness(state.brushHardness);
+    setPaintTool(state.paintTool);
+    setPaintColor(state.paintColor);
+    setActivePanel('inspector');
+}
+
 // ─── Sidebar interaction ───
-const sidebarItems = document.querySelectorAll('.sidebar-item');
+const sidebarItems = document.querySelectorAll('#panel-inspector .sidebar-item');
 const toggleModes = ['wireframe', 'vertexnormals', 'uvchecker', 'grid', 'autorotate', 'autodisplay', 'darkbg'];
 
 sidebarItems.forEach(item => {
@@ -2352,9 +3286,9 @@ document.getElementById('wireframe-width').addEventListener('input', (e) => {
 });
 
 // Viewport tabs
-document.querySelectorAll('.tab-btn').forEach(btn => {
+document.querySelectorAll('.tab-btn[data-viewport]').forEach(btn => {
     btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.tab-btn[data-viewport]').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
         toggle2DView(btn.dataset.viewport === '2d');
     });
@@ -2426,6 +3360,12 @@ document.getElementById('help-btn').addEventListener('click', () => {
 // Keyboard shortcuts
 document.addEventListener('keydown', (e) => {
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+    if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+        e.preventDefault();
+        undoPaint();
+        return;
+    }
 
     switch (e.key) {
         case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': {
@@ -2526,6 +3466,7 @@ function handleResize() {
 
 window.addEventListener('resize', handleResize);
 setupUVControls();
+setupPaintControls();
 
 // ─── Init ───
 async function init() {

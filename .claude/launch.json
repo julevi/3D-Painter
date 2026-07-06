@@ -3,8 +3,8 @@
   "configurations": [
     {
       "name": "3d-viewer",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["serve", "C:/Users/Gabriel/Desktop/3D_Viewer", "-l", "3000", "--no-clipboard"],
+      "runtimeExecutable": "powershell",
+      "runtimeArgs": ["-NoLogo", "-NonInteractive", "-ExecutionPolicy", "Bypass", "-File", ".claude/serve.ps1"],
       "port": 3000
     }
   ]
