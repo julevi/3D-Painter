@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>3D Model Inspector</title>
+    <title>3D Painter</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -19,50 +19,9 @@
         #canvas-container {
             position: absolute;
             top: 0; left: 0; right: 0; bottom: 0;
-            transition: right 0.3s ease;
         }
 
         canvas { display: block; touch-action: none; }
-
-        /* ── 2D UV Panel ── */
-        #uv-panel {
-            position: absolute;
-            top: 0; right: 0;
-            width: 0;
-            height: 100%;
-            background: #e8e8e8;
-            border-left: 2px solid #999;
-            z-index: 90;
-            overflow: hidden;
-            transition: width 0.3s ease;
-        }
-
-        #uv-panel.open {
-            width: 50%;
-        }
-
-        #uv-panel canvas {
-            width: 100%;
-            height: 100%;
-            cursor: grab;
-            touch-action: none;
-        }
-
-        #uv-panel canvas:active { cursor: grabbing; }
-
-        #uv-panel-label {
-            position: absolute;
-            top: 8px; left: 8px;
-            font-size: 11px;
-            font-weight: 600;
-            color: #666;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            background: rgba(255,255,255,0.8);
-            padding: 4px 10px;
-            border-radius: 4px;
-            pointer-events: none;
-        }
 
         /* ── Sidebar ── */
         #sidebar {
@@ -105,20 +64,20 @@
         }
 
         .section-label {
-            font-size: 10px;
+            font-size: 13px;
             font-weight: 600;
             color: rgba(255,255,255,0.35);
             text-transform: uppercase;
             letter-spacing: 1px;
-            padding: 12px 14px 4px;
+            padding: 16px 14px 8px;
             white-space: nowrap;
         }
 
         .sidebar-item {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 6px 14px;
+            gap: 12px;
+            padding: 12px 14px;
             cursor: pointer;
             transition: background 0.15s;
             color: #ccc;
@@ -131,135 +90,86 @@
             color: #fff;
         }
 
-        .radio-dot {
-            width: 14px; height: 14px;
-            border-radius: 50%;
-            border: 2px solid rgba(255,255,255,0.3);
-            flex-shrink: 0;
-            position: relative;
+        .sidebar-item span {
+            font-size: 16px;
+            font-weight: 600;
         }
-
-        .sidebar-item.active .radio-dot {
-            border-color: #3b82f6;
-        }
-
-        .sidebar-item.active .radio-dot::after {
-            content: '';
-            position: absolute;
-            top: 2px; left: 2px;
-            width: 6px; height: 6px;
-            border-radius: 50%;
-            background: #3b82f6;
-        }
-
-        .check-box {
-            width: 14px; height: 14px;
-            border-radius: 3px;
-            border: 2px solid rgba(255,255,255,0.3);
-            flex-shrink: 0;
-            display: flex; align-items: center; justify-content: center;
-        }
-
-        .sidebar-item.active .check-box {
-            border-color: #3b82f6;
-            background: #3b82f6;
-        }
-
-        .sidebar-item.active .check-box::after {
-            content: '✓';
-            font-size: 10px;
-            color: #fff;
-        }
-
-        /* ── Wireframe color swatches ── */
-        .color-row {
-            display: flex;
-            gap: 4px;
-            padding: 6px 14px;
-            align-items: center;
-        }
-
-        .color-swatch {
-            width: 20px; height: 20px;
-            border-radius: 3px;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: border-color 0.15s;
-        }
-
-        .color-swatch.active { border-color: #fff; }
-        .color-swatch:hover { border-color: rgba(255,255,255,0.5); }
 
         /* ── Slider rows ── */
         .slider-row {
             display: flex;
             align-items: center;
-            gap: 8px;
-            padding: 4px 14px;
+            gap: 10px;
+            padding: 8px 14px;
         }
 
         .slider-row label {
-            font-size: 11px;
+            font-size: 14px;
             color: rgba(255,255,255,0.5);
             white-space: nowrap;
         }
 
         .slider-row input[type="range"] {
             flex: 1;
-            height: 4px;
+            height: 8px;
             -webkit-appearance: none;
             background: rgba(255,255,255,0.15);
-            border-radius: 2px;
+            border-radius: 4px;
             outline: none;
         }
 
         .slider-row input[type="range"]::-webkit-slider-thumb {
             -webkit-appearance: none;
-            width: 12px; height: 12px;
+            width: 20px; height: 20px;
             border-radius: 50%;
             background: #3b82f6;
             cursor: pointer;
         }
 
         .slider-row .value {
-            font-size: 11px;
+            font-size: 14px;
             color: rgba(255,255,255,0.5);
-            min-width: 24px;
+            min-width: 32px;
             text-align: right;
-        }
-
-        /* ── Viewport tabs ── */
-        .tab-row {
-            display: flex;
-            gap: 2px;
-            padding: 6px 14px;
-        }
-
-        .tab-btn {
-            padding: 4px 14px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: 600;
-            cursor: pointer;
-            border: none;
-            background: rgba(255,255,255,0.08);
-            color: #aaa;
-            transition: all 0.15s;
-        }
-
-        .tab-btn.active {
-            background: #3b82f6;
-            color: #fff;
-        }
-
-        .tab-btn:hover:not(.active) {
-            background: rgba(255,255,255,0.12);
         }
 
         .divider {
             height: 1px;
             background: rgba(255,255,255,0.06);
             margin: 8px 0;
+        }
+
+        /* ── Tool / mode icons ── */
+        .tool-icon {
+            width: 32px;
+            height: 32px;
+            flex-shrink: 0;
+        }
+
+        .hardness-row {
+            display: flex;
+            gap: 10px;
+            padding: 6px 14px 12px;
+        }
+
+        .hardness-btn {
+            width: 46px; height: 46px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            border: 2px solid transparent;
+            background: rgba(255,255,255,0.06);
+            color: #ccc;
+            transition: all 0.15s;
+        }
+
+        .hardness-btn:hover { background: rgba(255,255,255,0.14); }
+        .hardness-btn.active {
+            border-color: #3b82f6;
+            background: rgba(59, 130, 246, 0.25);
+            color: #fff;
         }
 
         /* ── Color wheel (hue ring + saturation/value triangle) ── */
@@ -311,77 +221,6 @@
             font-weight: 600;
         }
 
-        /* ── Painting mode: bigger, kid-friendly UI ── */
-        .tool-icon {
-            width: 32px;
-            height: 32px;
-            flex-shrink: 0;
-        }
-
-        .hardness-row {
-            display: flex;
-            gap: 10px;
-            padding: 6px 14px 12px;
-        }
-
-        .hardness-btn {
-            width: 46px; height: 46px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            cursor: pointer;
-            border: 2px solid transparent;
-            background: rgba(255,255,255,0.06);
-            color: #ccc;
-            transition: all 0.15s;
-        }
-
-        .hardness-btn:hover { background: rgba(255,255,255,0.14); }
-        .hardness-btn.active {
-            border-color: #3b82f6;
-            background: rgba(59, 130, 246, 0.25);
-            color: #fff;
-        }
-
-        #panel-painting .section-label {
-            font-size: 13px;
-            padding: 16px 14px 8px;
-        }
-
-        #panel-painting .sidebar-item {
-            padding: 12px 14px;
-            gap: 12px;
-        }
-
-        #panel-painting .sidebar-item span {
-            font-size: 16px;
-            font-weight: 600;
-        }
-
-        #panel-painting .slider-row {
-            padding: 8px 14px;
-            gap: 10px;
-        }
-
-        #panel-painting .slider-row label {
-            font-size: 14px;
-        }
-
-        #panel-painting .slider-row .value {
-            font-size: 14px;
-            min-width: 32px;
-        }
-
-        #panel-painting .slider-row input[type="range"] {
-            height: 8px;
-        }
-
-        #panel-painting .slider-row input[type="range"]::-webkit-slider-thumb {
-            width: 20px;
-            height: 20px;
-        }
-
         /* ── Sidebar collapse ── */
         #sidebar-toggle {
             position: absolute;
@@ -404,117 +243,11 @@
         #sidebar-toggle:hover { color: #fff; background: rgba(255,255,255,0.1); }
 
         body.sidebar-collapsed #sidebar-toggle { left: 0; }
-        body.sidebar-collapsed #model-bar { left: 48px; }
         body.sidebar-collapsed #help-btn { left: 48px; }
         body.sidebar-collapsed #help-tooltip { left: 48px; }
 
-        #model-bar, #help-btn, #help-tooltip {
+        #help-btn, #help-tooltip {
             transition: left 0.25s ease;
-        }
-
-        /* ── Model Switcher (top bar) ── */
-        #model-bar {
-            position: absolute;
-            top: 12px;
-            left: 260px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 8px;
-            max-width: calc(100vw - 300px);
-            z-index: 100;
-        }
-
-        .model-btn {
-            padding: 8px 18px;
-            border-radius: 8px;
-            font-size: 13px;
-            font-weight: 500;
-            cursor: pointer;
-            border: 1px solid rgba(0,0,0,0.12);
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-            color: #444;
-            transition: all 0.2s;
-        }
-
-        .model-btn:hover { background: rgba(59, 130, 246, 0.15); border-color: rgba(59,130,246,0.3); color: #222; }
-        .model-btn.active {
-            background: rgba(59, 130, 246, 0.9);
-            border-color: #3b82f6;
-            color: #fff;
-        }
-
-        /* ── Stats overlay ── */
-        #stats-panel {
-            position: absolute;
-            bottom: 12px;
-            right: 12px;
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(0,0,0,0.1);
-            border-radius: 8px;
-            padding: 10px 16px;
-            font-size: 12px;
-            z-index: 100;
-            min-width: 180px;
-            transition: right 0.3s ease;
-        }
-
-        #stats-panel .stat-row {
-            display: flex;
-            justify-content: space-between;
-            padding: 2px 0;
-        }
-
-        #stats-panel .stat-label { color: #888; }
-        #stats-panel .stat-value { color: #222; font-weight: 600; font-variant-numeric: tabular-nums; }
-
-        /* ── Animation controls ── */
-        #anim-panel {
-            position: absolute;
-            bottom: 12px;
-            left: 50%;
-            transform: translateX(-50%);
-            background: rgba(255, 255, 255, 0.85);
-            backdrop-filter: blur(8px);
-            border: 1px solid rgba(0,0,0,0.1);
-            border-radius: 8px;
-            padding: 8px 16px;
-            display: none;
-            align-items: center;
-            gap: 12px;
-            z-index: 100;
-            font-size: 12px;
-            color: #444;
-        }
-
-        #anim-panel button {
-            background: rgba(0,0,0,0.08);
-            border: none;
-            color: #333;
-            width: 32px; height: 32px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 14px;
-            display: flex; align-items: center; justify-content: center;
-            transition: background 0.15s;
-        }
-
-        #anim-panel button:hover { background: rgba(59, 130, 246, 0.2); }
-
-        #anim-panel select {
-            background: rgba(0,0,0,0.06);
-            border: 1px solid rgba(0,0,0,0.15);
-            color: #333;
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 12px;
-        }
-
-        #anim-panel .time-display {
-            color: #666;
-            font-variant-numeric: tabular-nums;
-            min-width: 80px;
         }
 
         /* ── Loading overlay ── */
@@ -543,21 +276,6 @@
         @keyframes spin { to { transform: rotate(360deg); } }
 
         #loading p { margin-top: 12px; color: #666; font-size: 13px; }
-
-        /* ── Drop zone ── */
-        #drop-zone {
-            position: absolute;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background: rgba(59, 130, 246, 0.15);
-            border: 3px dashed #3b82f6;
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 300;
-            font-size: 18px;
-            color: #3b82f6;
-            font-weight: 600;
-        }
 
         /* ── Help tooltip ── */
         #help-btn {
@@ -594,7 +312,7 @@
             color: #555;
             z-index: 100;
             display: none;
-            max-width: 280px;
+            max-width: 260px;
         }
 
         #help-tooltip kbd {
@@ -608,34 +326,25 @@
 
         /* ── Mobile adjustments ── */
         @media (max-width: 768px) {
-            #sidebar { width: 180px; font-size: 12px; }
-            #sidebar-toggle { left: 180px; }
-            #model-bar { left: 200px; top: 8px; gap: 4px; }
-            .model-btn { padding: 6px 12px; font-size: 11px; }
-            #stats-panel { font-size: 11px; padding: 8px 12px; min-width: 150px; }
-            #help-btn { left: 200px; }
-            #help-tooltip { left: 200px; }
-            body.sidebar-collapsed #model-bar { left: 40px; }
+            #sidebar { width: 200px; font-size: 12px; }
+            #sidebar-toggle { left: 200px; }
+            #help-btn { left: 240px; }
+            #help-tooltip { left: 240px; }
             body.sidebar-collapsed #help-btn { left: 40px; }
+            body.sidebar-collapsed #help-tooltip { left: 40px; }
         }
 
         @media (max-width: 480px) {
-            #sidebar { width: 160px; }
-            #sidebar-toggle { left: 160px; }
-            #model-bar { left: 180px; flex-wrap: wrap; }
-            #help-btn { left: 180px; }
+            #sidebar { width: 180px; }
+            #sidebar-toggle { left: 180px; }
+            #help-btn { left: 220px; }
+            #help-tooltip { left: 220px; }
         }
     </style>
 </head>
 <body>
 
 <div id="canvas-container"></div>
-
-<!-- 2D UV Panel -->
-<div id="uv-panel">
-    <canvas id="uv-canvas"></canvas>
-    <div id="uv-panel-label">UV Layout</div>
-</div>
 
 <!-- Sidebar toggle -->
 <button id="sidebar-toggle" title="Collapse/Expand">◀</button>
@@ -646,301 +355,116 @@
         <img class="sidebar-logo" src="images/ACTVET_Logo.png" alt="ACTVET">
     </div>
 
-    <div class="tab-row" id="panel-tab-row">
-        <button class="tab-btn active" data-panel="inspector">Inspector</button>
-        <button class="tab-btn" data-panel="painting">Painting</button>
+    <div class="section-label">Tools</div>
+    <div class="sidebar-item active" data-tool="brush">
+        <svg class="tool-icon" viewBox="0 0 24 24"><g transform="rotate(45 12 12)">
+            <rect x="10" y="2" width="4" height="10" rx="1.5" fill="currentColor"/>
+            <rect x="9" y="11" width="6" height="4" rx="1" fill="currentColor" opacity="0.55"/>
+            <path d="M9 15 L15 15 L13 21 L11 21 Z" fill="currentColor"/>
+        </g></svg>
+        <span>Brush</span>
     </div>
-
-    <div class="divider"></div>
-
-    <div id="panel-inspector">
-    <div class="section-label">Wireframe</div>
-    <div class="color-row" id="wireframe-colors">
-        <div class="color-swatch" data-color="#ffffff" style="background:#fff"></div>
-        <div class="color-swatch" data-color="#000000" style="background:#000"></div>
-        <div class="color-swatch" data-color="#888888" style="background:#888"></div>
-        <div class="color-swatch active" data-color="#ff0000" style="background:#f00"></div>
-        <div class="color-swatch" data-color="#ff00ff" style="background:#f0f"></div>
-        <div class="color-swatch" data-color="#00ff00" style="background:#0f0"></div>
-        <div class="color-swatch" data-color="#ffff00" style="background:#ff0"></div>
+    <div class="sidebar-item" data-tool="eraser">
+        <svg class="tool-icon" viewBox="0 0 24 24"><g transform="rotate(-20 12 12)">
+            <rect x="5" y="8" width="14" height="9" rx="2" fill="currentColor"/>
+            <rect x="5" y="12.5" width="14" height="4.5" fill="currentColor" opacity="0.5"/>
+        </g></svg>
+        <span>Eraser</span>
+    </div>
+    <div class="sidebar-item" data-tool="bucket">
+        <svg class="tool-icon" viewBox="0 0 24 24">
+            <g transform="rotate(-25 12 12)">
+                <path d="M6 9 L18 9 L16.5 18 A2 2 0 0 1 14.5 20 L9.5 20 A2 2 0 0 1 7.5 18 Z" fill="currentColor"/>
+                <rect x="6" y="7" width="12" height="2.5" rx="1.25" fill="currentColor"/>
+            </g>
+            <circle cx="18.5" cy="18.5" r="2.3" fill="currentColor"/>
+        </svg>
+        <span>Paint Bucket</span>
+    </div>
+    <div class="sidebar-item" data-tool="picker">
+        <svg class="tool-icon" viewBox="0 0 24 24"><g transform="rotate(45 12 12)">
+            <rect x="9.5" y="2" width="5" height="5" rx="2.5" fill="currentColor"/>
+            <rect x="11" y="7" width="2" height="9" fill="currentColor"/>
+            <path d="M9.8 16 L14.2 16 L12 21.5 Z" fill="currentColor"/>
+        </g></svg>
+        <span>Color Picker</span>
     </div>
     <div class="slider-row">
-        <label>Width</label>
-        <input type="range" id="wireframe-width" min="1" max="5" step="0.5" value="1">
-        <span class="value" id="wireframe-width-val">1</span>
+        <label>Brush Size</label>
+        <input type="range" id="brush-size" min="4" max="160" step="1" value="40">
+        <span class="value" id="brush-size-val">40</span>
     </div>
 
-    <div class="divider"></div>
-
-    <div class="section-label">Viewport</div>
-    <div class="tab-row">
-        <button class="tab-btn active" data-viewport="3d">3D</button>
-        <button class="tab-btn" data-viewport="2d">2D</button>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="section-label">Shaders</div>
-    <div class="sidebar-item active" data-mode="final">
-        <div class="radio-dot"></div>
-        <span>Final Render</span>
-    </div>
-    <div class="sidebar-item" data-mode="nopost">
-        <div class="radio-dot"></div>
-        <span>No Post-Processing</span>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="section-label">Material Channels</div>
-    <div class="sidebar-item" data-mode="basecolor">
-        <div class="radio-dot"></div>
-        <span>Base Color</span>
-    </div>
-    <div class="sidebar-item" data-mode="metalness">
-        <div class="radio-dot"></div>
-        <span>Metalness</span>
-    </div>
-    <div class="sidebar-item" data-mode="roughness">
-        <div class="radio-dot"></div>
-        <span>Roughness</span>
-    </div>
-    <div class="sidebar-item" data-mode="normal">
-        <div class="radio-dot"></div>
-        <span>Normal Map</span>
-    </div>
-    <div class="sidebar-item" data-mode="opacity">
-        <div class="radio-dot"></div>
-        <span>Opacity</span>
-    </div>
-    <div class="sidebar-item" data-mode="emission">
-        <div class="radio-dot"></div>
-        <span>Emission</span>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="section-label">Geometry</div>
-    <div class="sidebar-item" data-mode="matcap">
-        <div class="radio-dot"></div>
-        <span>Matcap</span>
-    </div>
-    <div class="sidebar-item" data-mode="matcap-surface">
-        <div class="radio-dot"></div>
-        <span>Matcap+Surface</span>
-    </div>
-    <div class="sidebar-item" data-mode="wireframe">
-        <div class="check-box"></div>
-        <span>Wireframe</span>
-    </div>
-    <div class="sidebar-item" data-mode="vertexnormals">
-        <div class="check-box"></div>
-        <span>Vertex Normals</span>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="section-label">UVs</div>
-    <div class="sidebar-item" data-mode="uvchecker">
-        <div class="check-box"></div>
-        <span>UV Checker</span>
-    </div>
-
-    <div class="divider"></div>
-
-    <div class="section-label">Display</div>
-    <div class="sidebar-item active" data-mode="grid">
-        <div class="check-box"></div>
-        <span>Grid</span>
-    </div>
-    <div class="sidebar-item" data-mode="autorotate">
-        <div class="check-box"></div>
-        <span>Auto-Rotate</span>
-    </div>
-    <div class="sidebar-item" data-mode="autodisplay">
-        <div class="check-box"></div>
-        <span>Auto Display</span>
-    </div>
-    <div class="sidebar-item" data-mode="darkbg">
-        <div class="check-box"></div>
-        <span>Dark Background</span>
-    </div>
-    <div class="slider-row" id="rotate-speed-row" style="display:none">
-        <label>Speed</label>
-        <input type="range" id="rotate-speed" min="0.1" max="5" step="0.1" value="2">
-        <span class="value" id="rotate-speed-val">2.0</span>
-    </div>
-    </div>
-
-    <div id="panel-painting" style="display:none">
-        <div class="section-label">Tools</div>
-        <div class="sidebar-item active" data-tool="brush">
-            <svg class="tool-icon" viewBox="0 0 24 24"><g transform="rotate(45 12 12)">
-                <rect x="10" y="2" width="4" height="10" rx="1.5" fill="currentColor"/>
-                <rect x="9" y="11" width="6" height="4" rx="1" fill="currentColor" opacity="0.55"/>
-                <path d="M9 15 L15 15 L13 21 L11 21 Z" fill="currentColor"/>
-            </g></svg>
-            <span>Brush</span>
+    <div class="section-label" id="brush-hardness-label">Brush Hardness</div>
+    <div class="hardness-row" id="brush-hardness-row">
+        <div class="hardness-btn active" data-hardness="hard" title="Hard">
+            <svg class="tool-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/></svg>
         </div>
-        <div class="sidebar-item" data-tool="eraser">
-            <svg class="tool-icon" viewBox="0 0 24 24"><g transform="rotate(-20 12 12)">
-                <rect x="5" y="8" width="14" height="9" rx="2" fill="currentColor"/>
-                <rect x="5" y="12.5" width="14" height="4.5" fill="currentColor" opacity="0.5"/>
-            </g></svg>
-            <span>Eraser</span>
-        </div>
-        <div class="sidebar-item" data-tool="bucket">
+        <div class="hardness-btn" data-hardness="mid" title="Mid">
             <svg class="tool-icon" viewBox="0 0 24 24">
-                <g transform="rotate(-25 12 12)">
-                    <path d="M6 9 L18 9 L16.5 18 A2 2 0 0 1 14.5 20 L9.5 20 A2 2 0 0 1 7.5 18 Z" fill="currentColor"/>
-                    <rect x="6" y="7" width="12" height="2.5" rx="1.25" fill="currentColor"/>
-                </g>
-                <circle cx="18.5" cy="18.5" r="2.3" fill="currentColor"/>
+                <defs><radialGradient id="brushMidGrad"><stop offset="0%" stop-color="currentColor" stop-opacity="1"/><stop offset="55%" stop-color="currentColor" stop-opacity="1"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
+                <circle cx="12" cy="12" r="10.5" fill="url(#brushMidGrad)"/>
             </svg>
-            <span>Paint Bucket</span>
         </div>
-        <div class="sidebar-item" data-tool="picker">
-            <svg class="tool-icon" viewBox="0 0 24 24"><g transform="rotate(45 12 12)">
-                <rect x="9.5" y="2" width="5" height="5" rx="2.5" fill="currentColor"/>
-                <rect x="11" y="7" width="2" height="9" fill="currentColor"/>
-                <path d="M9.8 16 L14.2 16 L12 21.5 Z" fill="currentColor"/>
-            </g></svg>
-            <span>Color Picker</span>
-        </div>
-        <div class="slider-row">
-            <label>Brush Size</label>
-            <input type="range" id="brush-size" min="4" max="160" step="1" value="40">
-            <span class="value" id="brush-size-val">40</span>
-        </div>
-
-        <div class="section-label" id="brush-hardness-label">Brush Hardness</div>
-        <div class="hardness-row" id="brush-hardness-row">
-            <div class="hardness-btn active" data-hardness="hard" title="Hard">
-                <svg class="tool-icon" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9" fill="currentColor"/></svg>
-            </div>
-            <div class="hardness-btn" data-hardness="mid" title="Mid">
-                <svg class="tool-icon" viewBox="0 0 24 24">
-                    <defs><radialGradient id="brushMidGrad"><stop offset="0%" stop-color="currentColor" stop-opacity="1"/><stop offset="55%" stop-color="currentColor" stop-opacity="1"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
-                    <circle cx="12" cy="12" r="10.5" fill="url(#brushMidGrad)"/>
-                </svg>
-            </div>
-            <div class="hardness-btn" data-hardness="soft" title="Soft">
-                <svg class="tool-icon" viewBox="0 0 24 24">
-                    <defs><radialGradient id="brushSoftGrad"><stop offset="0%" stop-color="currentColor" stop-opacity="0.9"/><stop offset="20%" stop-color="currentColor" stop-opacity="0.65"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
-                    <circle cx="12" cy="12" r="11.5" fill="url(#brushSoftGrad)"/>
-                </svg>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="section-label" id="bucket-mode-label">Bucket Fill Mode</div>
-        <div id="bucket-mode-row">
-            <div class="sidebar-item active" data-bucket-mode="full">
-                <svg class="tool-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor"/></svg>
-                <span>Full Object</span>
-            </div>
-            <div class="sidebar-item" data-bucket-mode="face">
-                <svg class="tool-icon" viewBox="0 0 24 24"><path d="M12 4 L21 20 L3 20 Z" fill="currentColor"/></svg>
-                <span>Face</span>
-            </div>
-            <div class="sidebar-item" data-bucket-mode="shell">
-                <svg class="tool-icon" viewBox="0 0 24 24"><path d="M5 8 Q3 12 6 16 Q9 21 14 19 Q21 17 20 11 Q19 5 13 5 Q7 4 5 8 Z" fill="currentColor"/></svg>
-                <span>UV Shell</span>
-            </div>
-        </div>
-
-        <div class="divider"></div>
-
-        <div class="section-label">Color</div>
-        <div class="color-wheel-wrap">
-            <canvas id="color-wheel-canvas" width="220" height="220"></canvas>
-            <div id="color-wheel-hue-marker"></div>
-            <div id="color-wheel-sv-marker"></div>
-        </div>
-        <div class="color-preview-row">
-            <div id="color-swatch-current"></div>
-            <span id="color-hex-label">#FF2D2D</span>
+        <div class="hardness-btn" data-hardness="soft" title="Soft">
+            <svg class="tool-icon" viewBox="0 0 24 24">
+                <defs><radialGradient id="brushSoftGrad"><stop offset="0%" stop-color="currentColor" stop-opacity="0.9"/><stop offset="20%" stop-color="currentColor" stop-opacity="0.65"/><stop offset="100%" stop-color="currentColor" stop-opacity="0"/></radialGradient></defs>
+                <circle cx="12" cy="12" r="11.5" fill="url(#brushSoftGrad)"/>
+            </svg>
         </div>
     </div>
-</div>
 
-<!-- Model switcher -->
-<div id="model-bar">
-    <button class="model-btn active" data-model="0">Hammer</button>
-    <button class="model-btn" data-model="1">Blade</button>
-    <button class="model-btn" data-model="2">Cargo Transporter</button>
-    <button class="model-btn" data-model="3">Fiesta Tea</button>
-    <button class="model-btn" data-model="4">Brute Knight</button>
-    <button class="model-btn" data-model="5">Cuphead</button>
-    <button class="model-btn" data-model="6">Cannon</button>
-    <button class="model-btn" data-model="7">Flying Drone</button>
-    <button class="model-btn" data-model="8">Axe</button>
-</div>
+    <div class="divider"></div>
 
-<!-- Stats -->
-<div id="stats-panel">
-    <div class="stat-row">
-        <span class="stat-label">Triangles</span>
-        <span class="stat-value" id="stat-triangles">0</span>
+    <div class="section-label" id="bucket-mode-label">Bucket Fill Mode</div>
+    <div id="bucket-mode-row">
+        <div class="sidebar-item active" data-bucket-mode="full">
+            <svg class="tool-icon" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3" fill="currentColor"/></svg>
+            <span>Full Object</span>
+        </div>
+        <div class="sidebar-item" data-bucket-mode="face">
+            <svg class="tool-icon" viewBox="0 0 24 24"><path d="M12 4 L21 20 L3 20 Z" fill="currentColor"/></svg>
+            <span>Face</span>
+        </div>
+        <div class="sidebar-item" data-bucket-mode="shell">
+            <svg class="tool-icon" viewBox="0 0 24 24"><path d="M5 8 Q3 12 6 16 Q9 21 14 19 Q21 17 20 11 Q19 5 13 5 Q7 4 5 8 Z" fill="currentColor"/></svg>
+            <span>UV Shell</span>
+        </div>
     </div>
-    <div class="stat-row">
-        <span class="stat-label">Vertices</span>
-        <span class="stat-value" id="stat-vertices">0</span>
-    </div>
-    <div class="stat-row">
-        <span class="stat-label">Meshes</span>
-        <span class="stat-value" id="stat-meshes">0</span>
-    </div>
-    <div class="stat-row">
-        <span class="stat-label">Materials</span>
-        <span class="stat-value" id="stat-materials">0</span>
-    </div>
-    <div class="stat-row">
-        <span class="stat-label">Textures</span>
-        <span class="stat-value" id="stat-textures">0</span>
-    </div>
-</div>
 
-<!-- Animation panel -->
-<div id="anim-panel">
-    <button id="anim-play" title="Play/Pause">&#9654;</button>
-    <select id="anim-select"></select>
-    <span class="time-display" id="anim-time">0.00 / 0.00s</span>
-    <input type="range" id="anim-scrub" min="0" max="100" value="0" style="width:120px">
-    <label style="font-size:11px;color:#888">Speed</label>
-    <input type="range" id="anim-speed" min="0.1" max="3" step="0.1" value="1" style="width:60px">
-    <span class="value" id="anim-speed-val">1x</span>
+    <div class="divider"></div>
+
+    <div class="section-label">Color</div>
+    <div class="color-wheel-wrap">
+        <canvas id="color-wheel-canvas" width="220" height="220"></canvas>
+        <div id="color-wheel-hue-marker"></div>
+        <div id="color-wheel-sv-marker"></div>
+    </div>
+    <div class="color-preview-row">
+        <div id="color-swatch-current"></div>
+        <span id="color-hex-label">#FF2D2D</span>
+    </div>
 </div>
 
 <!-- Loading -->
 <div id="loading">
     <div class="spinner"></div>
-    <p id="loading-text">Loading model...</p>
+    <p id="loading-text">Loading Cannon...</p>
 </div>
 
 <!-- Help -->
 <button id="help-btn">?</button>
 <div id="help-tooltip">
     <strong>Controls</strong><br>
-    <kbd>LMB</kbd> / Touch: Orbit<br>
-    <kbd>RMB</kbd> / 2-finger: Pan<br>
-    <kbd>MMB</kbd> Pan<br>
+    <kbd>LMB</kbd> / Touch: Paint<br>
+    <kbd>RMB</kbd>: Orbit<br>
+    <kbd>MMB</kbd>: Pan<br>
     <kbd>Scroll</kbd> / Pinch: Zoom<br>
-    <kbd>1-9</kbd> Switch models<br>
-    <kbd>W</kbd> Toggle wireframe<br>
-    <kbd>N</kbd> Toggle normals<br>
-    <kbd>U</kbd> Toggle UV checker<br>
-    <kbd>A</kbd> Toggle auto-rotate<br>
-    <kbd>D</kbd> Toggle auto display<br>
-    <kbd>G</kbd> Toggle grid<br>
-    <kbd>Space</kbd> Play/Pause animation<br>
-    <kbd>R</kbd> Reset camera<br>
-    Use Model 1-9 to switch preset models<br>
-    <strong>Painting tab:</strong> LMB paint/erase/fill, RMB orbit, MMB pan
+    <kbd>Ctrl</kbd>+<kbd>Z</kbd> Undo<br>
+    <kbd>R</kbd> Reset camera
 </div>
 
-<!-- Three.js and loaders from CDN -->
+<!-- Three.js and FBXLoader from CDN -->
 <script type="importmap">
 {
     "imports": {
@@ -954,11 +478,7 @@
 <script type="module">
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
 import { FBXLoader } from 'local/FBXLoader.js';
-import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
-import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
-import { VertexNormalsHelper } from 'three/addons/helpers/VertexNormalsHelper.js';
 
 // ─── Scene setup ───
 const container = document.getElementById('canvas-container');
@@ -982,7 +502,9 @@ const controls = new OrbitControls(camera, renderer.domElement);
 controls.enableDamping = true;
 controls.dampingFactor = 0.08;
 controls.rotateSpeed = 0.8;
-controls.touches = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
+// Left click paints (handled separately below); middle-click pans; right-click orbits.
+controls.mouseButtons = { LEFT: null, MIDDLE: THREE.MOUSE.PAN, RIGHT: THREE.MOUSE.ROTATE };
+controls.touches = { ONE: null, TWO: THREE.TOUCH.DOLLY_PAN };
 
 // ─── Lighting ───
 const ambientLight = new THREE.AmbientLight(0xffffff, 0.85);
@@ -1008,11 +530,6 @@ const rimLight = new THREE.DirectionalLight(0xffffff, 0.45);
 rimLight.position.set(-3, 5, 6);
 scene.add(rimLight);
 
-const bruteFillLight = new THREE.PointLight(0xffffff, 1.0, 12, 1.8);
-bruteFillLight.position.set(-2.5, 2.6, 3.5);
-bruteFillLight.visible = false;
-scene.add(bruteFillLight);
-
 const hemiLight = new THREE.HemisphereLight(0xffffff, 0x9a9a9a, 0.7);
 scene.add(hemiLight);
 
@@ -1020,197 +537,23 @@ scene.add(hemiLight);
 const gridHelper = new THREE.GridHelper(10, 20, 0x999999, 0xbbbbbb);
 scene.add(gridHelper);
 
-// ─── Matcap texture ───
-function createMatcapTexture() {
-    const size = 256;
-    const canvas = document.createElement('canvas');
-    canvas.width = size; canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    const grad = ctx.createRadialGradient(size*0.45, size*0.35, 0, size*0.5, size*0.5, size*0.5);
-    grad.addColorStop(0, '#e8e0d8');
-    grad.addColorStop(0.4, '#b8a898');
-    grad.addColorStop(0.7, '#786858');
-    grad.addColorStop(1, '#382820');
-    ctx.fillStyle = grad;
-    ctx.fillRect(0, 0, size, size);
-    return new THREE.CanvasTexture(canvas);
-}
-
-const matcapTexture = createMatcapTexture();
-
-// UV checker texture
-function createUVCheckerTexture() {
-    const size = 512;
-    const canvas = document.createElement('canvas');
-    canvas.width = size; canvas.height = size;
-    const ctx = canvas.getContext('2d');
-    const cells = 8;
-    const cellSize = size / cells;
-    for (let y = 0; y < cells; y++) {
-        for (let x = 0; x < cells; x++) {
-            ctx.fillStyle = (x + y) % 2 === 0 ? '#808080' : '#404040';
-            ctx.fillRect(x * cellSize, y * cellSize, cellSize, cellSize);
-        }
-    }
-    ctx.strokeStyle = '#00ff00';
-    ctx.lineWidth = 2;
-    for (let i = 0; i <= cells; i++) {
-        ctx.beginPath(); ctx.moveTo(i * cellSize, 0); ctx.lineTo(i * cellSize, size); ctx.stroke();
-        ctx.beginPath(); ctx.moveTo(0, i * cellSize); ctx.lineTo(size, i * cellSize); ctx.stroke();
-    }
-    ctx.fillStyle = '#ff0000';
-    ctx.font = `${cellSize * 0.3}px sans-serif`;
-    ctx.textAlign = 'center';
-    ctx.textBaseline = 'middle';
-    for (let y = 0; y < cells; y++) {
-        for (let x = 0; x < cells; x++) {
-            ctx.fillText(`${x},${y}`, (x + 0.5) * cellSize, (y + 0.5) * cellSize);
-        }
-    }
-    const tex = new THREE.CanvasTexture(canvas);
-    tex.wrapS = tex.wrapT = THREE.RepeatWrapping;
-    return tex;
-}
-
-const uvCheckerTexture = createUVCheckerTexture();
+// ─── Model config ───
+const MODEL_CONFIG = {
+    path: 'models/model7/',
+    file: 'cannon_lp.fbx',
+    label: 'Cannon',
+    standardizeMaterials: true,
+    textureDir: 'images_web/',
+    textureFlipY: true,
+    materialAdjust: { exposure: 1.2, saturation: 0.82, roughnessMin: 0.9, metalnessMax: 0.15, emissiveBoost: 0.08 },
+    textureRules: [
+        { slot: 0, match: /Phong|cannon|Material/i, map: 'Cannon_BC.webp', normalMap: 'Cannon_NM.webp', roughnessMap: 'Cannon_R.webp', metalnessMap: 'Cannon_M.webp', aoMap: 'Cannon_AO.webp' }
+    ]
+};
 
 // ─── State ───
 const state = {
-    models: [null, null, null, null, null, null, null, null, null],
-    loadingPromises: new Map(),
-    modelConfigs: [
-        {
-            path: 'models/model1/',
-            file: 'Hammer.fbx',
-            label: 'Hammer',
-            rotateAxis: 'y',
-            cameraDistanceScale: 0.82,
-            cameraTargetOffset: { y: 0.2, x: 0.08 },
-            lightRig: { key: 1.05, fill: 0.4, rim: 0.95, ambient: 0.58, hemisphere: 0.45 },
-            materialAdjust: { exposure: 1.04, saturation: 0.97, roughnessMax: 0.26, metalnessMin: 0.05, envIntensity: 1.2 }
-        },
-        {
-            path: 'models/model2/',
-            file: 'Blade.fbx',
-            label: 'Blade',
-            rotateAxis: 'y',
-            lightRig: { key: 1.05, fill: 0.4, rim: 0.95, ambient: 0.58, hemisphere: 0.45 },
-            materialAdjust: { exposure: 1.04, saturation: 0.97, roughnessMax: 0.26, metalnessMin: 0.05, envIntensity: 1.2 }
-        },
-        {
-            path: 'models/model3/',
-            file: 'Cargo_Transporter.fbx',
-            label: 'Cargo Transporter',
-            rotateAxis: 'y',
-            lightRig: { key: 1.05, fill: 0.4, rim: 0.95, ambient: 0.58, hemisphere: 0.45 },
-            materialAdjust: { exposure: 1.04, saturation: 0.97, roughnessMax: 0.26, metalnessMin: 0.05, envIntensity: 1.2 }
-        },
-        {
-            path: 'models/model4/',
-            file: 'fiesta_tea.fbx',
-            label: 'Fiesta Tea',
-            rotateAxis: 'y',
-            useOriginalMaterials: true,
-            standardizeMaterials: true,
-            removeMeshes: ['Object_12', 'Object_28'],
-            removeMaterials: ['peripheri_Base_Color'],
-            textureDir: 'fiesta_tea.fbm/',
-            textureFlipY: true,
-            brightenTextures: true,
-            useEmbeddedOpacity: true,
-            alphaCutoffs: {
-                VRayMtl2: 0.02
-            },
-            textureRules: [
-                { slot: 0, match: /^VRayMtl1$/i, map: 'VRayMtl1.jpg' },
-                { slot: 1, match: /^VRayMtl2$/i, map: 'VRayMtl2.png', alphaMap: 'VRayMtl3_opacity.png', alphaTest: 0.02, transparent: true },
-                { slot: 2, match: /^VRayMtl3$/i, map: 'VRayMtl3.png' }
-            ]
-        },
-        {
-            path: 'models/model5/',
-            file: 'brute_knight.glb',
-            label: 'Brute Knight',
-            rotateAxis: 'y',
-            useOriginalMaterials: true,
-            lightRig: { key: 0.9, fill: 1.15, rim: 0.85, ambient: 0.72, hemisphere: 0.75, bruteFill: 1.35 },
-            viewBounds: { excludePattern: /Object_(16|20|21|22|37)|sword|blade|weapon|razor_metal/i, preciseSkinned: true },
-            scaleMultiplier: 6.0,
-            cameraDistanceScale: 0.9,
-            cameraTargetOffset: { y: 0.55 },
-            rotationPivot: { mode: 'footMidpointWithoutWeapon', weaponPattern: /Object_(16|20|21|22|37)|sword|blade|weapon|razor_metal/i, footPattern: /shoe|boot|feet|foot|Skin|leather/i },
-            materialAdjust: { exposure: 1.12, saturation: 0.94, metalnessMapDarken: 0.25, roughnessMin: 0.32, metalnessMax: 1.0, envIntensity: 1.05, emissiveBoost: 0 }
-        },
-        { path: 'models/model6/', file: 'cuphead.glb', label: 'Cuphead', rotateAxis: 'y', useOriginalMaterials: true, animationSpeed: 2.4 },
-        {
-            path: 'models/model7/',
-            file: 'cannon_lp.fbx',
-            label: 'Cannon',
-            rotateAxis: 'y',
-            useOriginalMaterials: true,
-            standardizeMaterials: true,
-            textureDir: 'images_web/',
-            textureFlipY: true,
-            materialAdjust: { exposure: 1.2, saturation: 0.82, roughnessMin: 0.9, metalnessMax: 0.15, emissiveBoost: 0.08 },
-            textureRules: [
-                { slot: 0, match: /Phong|cannon|Material/i, map: 'Cannon_BC.webp', normalMap: 'Cannon_NM.webp', roughnessMap: 'Cannon_R.webp', metalnessMap: 'Cannon_M.webp', aoMap: 'Cannon_AO.webp' }
-            ]
-        },
-        {
-            path: 'models/model8/Drone_Anim/',
-            file: 'drone_anim.fbx',
-            label: 'Flying Drone',
-            rotateAxis: 'y',
-            useOriginalMaterials: true,
-            standardizeMaterials: true,
-            preserveAnimatedRootTransform: true,
-            removeAnimationTracks: [/^Drone_Controller\.position$/],
-            textureRoot: '../',
-            textureDir: 'images_web/',
-            textureFlipY: true,
-            materialAdjust: { exposure: 1.08, saturation: 0.96, roughnessMin: 0.48, metalnessMax: 1.0, envIntensity: 0.9, emissiveBoost: 0.03 },
-            textureAliases: {
-                'body_albedo.png': 'body_albedo.webp',
-                'body_emissive.png': 'body_emissive.webp',
-                'body_roughness.png': 'body_roughness.webp',
-                'body_normal.png': 'body_normal.webp',
-                'leg_albedo.png': 'leg_albedo.webp',
-                'leg_roughness.png': 'leg_roughness.webp',
-                'leg_normal.png': 'leg_normal.webp',
-                'concrete_044_basecolor.png': 'concrete_044_basecolor.webp',
-                'concrete_044_normal.png': 'concrete_044_normal.webp'
-            },
-            textureRules: [
-                { match: /^body$/i, map: 'body_albedo.webp', normalMap: 'body_normal.webp', roughnessMap: 'body_roughness.webp', metalnessMap: 'body_metallic.webp', aoMap: 'body_AO.webp', emissiveMap: 'body_emissive.webp' },
-                { match: /^leg$/i, map: 'leg_albedo.webp', normalMap: 'leg_normal.webp', roughnessMap: 'leg_roughness.webp', metalnessMap: 'leg_metallic.webp', aoMap: 'leg_AO.webp' },
-                { match: /^Boden$/i, map: 'concrete_044_basecolor.webp', normalMap: 'concrete_044_normal.webp', roughnessMap: 'concrete_044_roughness.webp', metalnessMap: 'concrete_044_metallic.webp', aoMap: 'concrete_044_AO.webp' }
-            ]
-        },
-        {
-            path: 'models/model9/',
-            file: 'Axe2.fbx',
-            label: 'Axe',
-            rotateAxis: 'y',
-            useOriginalMaterials: true,
-            standardizeMaterials: true,
-            textureDir: 'images/',
-            textureFlipY: true,
-            materialAdjust: { exposure: 1.25, saturation: 0.92, roughnessMin: 0.62, metalnessMax: 0.35, emissiveBoost: 0.08 },
-            textureRules: [
-                { slot: 0, match: /Phong|Axe|Material|texture/i, map: 'texture.png' }
-            ]
-        }
-    ],
-    currentModelIndex: 0,
     currentModel: null,
-    originalMaterials: new Map(),
-    renderMode: 'final',
-    wireframeOverlay: false,
-    wireframeColor: '#ff0000',
-    wireframeWidth: 1,
-    vertexNormalsVisible: false,
-    uvCheckerVisible: false,
-    activePanel: 'inspector',
     paintTool: 'brush',
     bucketMode: 'full',
     brushSize: 40,
@@ -1221,45 +564,10 @@ const state = {
     paintVal: 1,
     paintData: new WeakMap(),
     isPaintingStroke: false,
-    lastPaintPoint: null,
-    normalHelpers: [],
-    wireframeMeshes: [],
-    wireframeMaterials: [],
-    uvLayoutImages: new WeakMap(),
-    mixer: null,
-    currentAction: null,
-    animations: [],
-    clock: new THREE.Clock(),
-    animPlaying: false,
-    autoRotate: false,
-    autoRotateSpeed: 2,
-    autoDisplay: false,
-    autoDisplayElapsed: 0,
-    autoDisplayInterval: 15,
-    showGrid: true,
-    darkBackground: false,
-    show2D: false,
-    uvView: {
-        scale: 1,
-        offsetX: 0,
-        offsetY: 0,
-        isDragging: false,
-        lastX: 0,
-        lastY: 0,
-        activePointers: new Map(),
-        lastPinchDistance: 0
-    }
+    lastPaintPoint: null
 };
 
-function updateViewportBackground() {
-    scene.background = new THREE.Color(state.darkBackground ? 0x5a5a5a : 0xd0d0d0);
-}
-
-// ─── Model Loading ───
-const fbxLoader = new FBXLoader();
-const gltfLoader = new GLTFLoader();
-const objLoader = new OBJLoader();
-const mtlLoader = new MTLLoader();
+// ─── Model loading ───
 const textureLoader = new THREE.TextureLoader();
 const configuredTextureCache = new Map();
 const standardGreyMaterial = new THREE.MeshStandardMaterial({
@@ -1269,22 +577,8 @@ const standardGreyMaterial = new THREE.MeshStandardMaterial({
     side: THREE.DoubleSide
 });
 
-function applyEmbeddedOpacity(material, alphaCutoff) {
-    if (!material) return material;
-    material.side = THREE.DoubleSide;
-    if (material.alphaMap || material.map?.image) {
-        material.transparent = material.transparent || false;
-        material.depthWrite = !material.transparent;
-        material.alphaTest = alphaCutoff ?? material.alphaTest ?? 0;
-    }
-    material.needsUpdate = true;
-    return material;
-}
-
 function loadConfiguredTexture(config, fileName, isColor = false) {
-    const textureDir = config.textureDir || 'images/';
-    const textureRoot = config.textureRoot || '';
-    const url = encodeURI(`${config.path}${textureRoot}${textureDir}${fileName}`);
+    const url = encodeURI(`${config.path}${config.textureDir || 'images/'}${fileName}`);
     if (!configuredTextureCache.has(url)) {
         const texture = textureLoader.load(url);
         texture.flipY = config.textureFlipY ?? false;
@@ -1299,67 +593,25 @@ function loadConfiguredTexture(config, fileName, isColor = false) {
 function applyConfiguredTextures(material, config, materialIndex = 0) {
     if (!material || !config.textureRules) return material;
     const materialName = material.name || '';
-    const forcedSlotRule = config.forceSlotFallback
-        ? config.textureRules.find(({ slot }) => slot === materialIndex)
-        : null;
-    const rule = forcedSlotRule
-        || config.textureRules.find(({ match }) => match?.test(materialName))
-        || ((config.forceSlotFallback || materialName === '' || /^(Material|lambert|phong|Phong\d*)$/i.test(materialName))
+    const rule = config.textureRules.find(({ match }) => match?.test(materialName))
+        || (materialName === '' || /^(Material|lambert|phong|Phong\d*)$/i.test(materialName)
             ? config.textureRules.find(({ slot }) => slot === materialIndex)
             : null);
     if (!rule) return material;
 
-    const mapFile = rule.map || (rule.set ? `${rule.set}_BaseColor.png` : null);
-    const normalFile = rule.normalMap || (rule.set ? `${rule.set}_Normal.png` : null);
-    const roughnessFile = rule.roughnessMap || (rule.set ? `${rule.set}_Roughness.png` : null);
-    const metalnessFile = rule.metalnessMap || (rule.set ? `${rule.set}_Metallic.png` : null);
-    const aoFile = rule.aoMap || (rule.set ? `${rule.set}_AO.png` : null);
-    const emissiveFile = rule.emissiveMap || null;
-    const alphaFile = rule.alphaMap || null;
-    const opacityViewFile = rule.opacityViewMap || null;
-
-    if (mapFile) {
-        material.map = loadConfiguredTexture(config, mapFile, true);
+    if (rule.map) {
+        material.map = loadConfiguredTexture(config, rule.map, true);
         material.color?.set?.(0xffffff);
         material.roughness = 0.72;
         material.metalness = 0.0;
-        if (config.brightenTextures && material.emissive) {
-            material.emissive.set(0xffffff);
-            material.emissiveMap = material.map;
-            material.emissiveIntensity = 0.18;
-        }
     }
-    if (normalFile) {
-        material.normalMap = loadConfiguredTexture(config, normalFile);
-    }
-    if (roughnessFile) {
-        material.roughnessMap = loadConfiguredTexture(config, roughnessFile);
-    }
-    if (metalnessFile) {
-        material.metalnessMap = loadConfiguredTexture(config, metalnessFile);
+    if (rule.normalMap) material.normalMap = loadConfiguredTexture(config, rule.normalMap);
+    if (rule.roughnessMap) material.roughnessMap = loadConfiguredTexture(config, rule.roughnessMap);
+    if (rule.metalnessMap) {
+        material.metalnessMap = loadConfiguredTexture(config, rule.metalnessMap);
         material.metalness = 1;
     }
-    if (aoFile) {
-        material.aoMap = loadConfiguredTexture(config, aoFile);
-    }
-    if (emissiveFile && material.emissive) {
-        material.emissiveMap = loadConfiguredTexture(config, emissiveFile, true);
-        material.emissive.set(0xffffff);
-        material.emissiveIntensity = material.emissiveIntensity || 0.2;
-    }
-    if (alphaFile) {
-        material.alphaMap = loadConfiguredTexture(config, alphaFile);
-        material.transparent = Boolean(rule.transparent);
-        material.depthWrite = !rule.transparent;
-    }
-    if (opacityViewFile) {
-        material.userData.opacityViewMap = loadConfiguredTexture(config, opacityViewFile);
-    }
-    if (rule.alphaTest !== undefined) {
-        material.transparent = Boolean(rule.transparent);
-        material.alphaTest = rule.alphaTest;
-        material.depthWrite = !rule.transparent;
-    }
+    if (rule.aoMap) material.aoMap = loadConfiguredTexture(config, rule.aoMap);
     material.needsUpdate = true;
     return material;
 }
@@ -1372,15 +624,12 @@ function getUrlFilename(url) {
 
 function getConfiguredTexturePath(config, filename) {
     const lowerFilename = filename.toLowerCase();
-    const explicitAlias = config.textureAliases?.[lowerFilename];
-    if (explicitAlias) return `${config.path}${config.textureRoot || ''}${config.textureDir || ''}${explicitAlias}`;
-
-    const fields = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap', 'alphaMap', 'opacityViewMap'];
+    const fields = ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap'];
     for (const rule of config.textureRules || []) {
         for (const field of fields) {
             const target = rule[field];
             if (target && getUrlFilename(target) === lowerFilename) {
-                return `${config.path}${config.textureRoot || ''}${config.textureDir || ''}${target}`;
+                return `${config.path}${config.textureDir || ''}${target}`;
             }
         }
     }
@@ -1438,40 +687,6 @@ function adjustTextureColor(texture, config) {
     return adjusted;
 }
 
-function darkenScalarTexture(texture, factor = 1) {
-    if (!texture?.image || factor >= 1) return texture;
-    const key = `${texture.uuid}|scalar-darken|${factor}`;
-    if (configuredTextureCache.has(key)) return configuredTextureCache.get(key);
-
-    const image = texture.image;
-    const width = image.width || image.videoWidth;
-    const height = image.height || image.videoHeight;
-    if (!width || !height) return texture;
-
-    const canvas = document.createElement('canvas');
-    canvas.width = width;
-    canvas.height = height;
-    const ctx = canvas.getContext('2d', { willReadFrequently: true });
-    ctx.drawImage(image, 0, 0, width, height);
-    const imageData = ctx.getImageData(0, 0, width, height);
-    const data = imageData.data;
-    for (let i = 0; i < data.length; i += 4) {
-        data[i] = Math.round(data[i] * factor);
-        data[i + 1] = Math.round(data[i + 1] * factor);
-        data[i + 2] = Math.round(data[i + 2] * factor);
-    }
-    ctx.putImageData(imageData, 0, 0);
-
-    const adjusted = new THREE.CanvasTexture(canvas);
-    adjusted.flipY = texture.flipY;
-    adjusted.wrapS = texture.wrapS;
-    adjusted.wrapT = texture.wrapT;
-    adjusted.colorSpace = THREE.NoColorSpace;
-    adjusted.needsUpdate = true;
-    configuredTextureCache.set(key, adjusted);
-    return adjusted;
-}
-
 function applyMaterialAdjustments(material, config) {
     const adjust = config.materialAdjust;
     if (!material || !adjust) return material;
@@ -1491,10 +706,6 @@ function applyMaterialAdjustments(material, config) {
             material.emissive.set(0xffffff);
             material.emissiveMap = material.emissiveMap || material.map;
             material.emissiveIntensity = emissiveBoost;
-        } else if (material.emissive && adjust.emissiveBoost === 0) {
-            material.emissive.set(0x000000);
-            material.emissiveMap = null;
-            material.emissiveIntensity = 0;
         }
     }
     if (material.color && !material.map && adjust.exposure) {
@@ -1505,16 +716,6 @@ function applyMaterialAdjustments(material, config) {
     }
     if (adjust.roughnessMax !== undefined) {
         material.roughness = Math.min(material.roughness ?? 0.5, adjust.roughnessMax);
-    }
-    if (material.metalnessMap && adjust.metalnessMapDarken !== undefined) {
-        if (material.metalnessMap.image?.complete || material.metalnessMap.image?.width) {
-            material.metalnessMap = darkenScalarTexture(material.metalnessMap, adjust.metalnessMapDarken);
-        } else {
-            material.metalnessMap.addEventListener?.('update', () => {
-                material.metalnessMap = darkenScalarTexture(material.metalnessMap, adjust.metalnessMapDarken);
-                material.needsUpdate = true;
-            });
-        }
     }
     if (adjust.metalnessMin !== undefined) {
         material.metalness = Math.max(material.metalness ?? 0, adjust.metalnessMin);
@@ -1530,9 +731,7 @@ function applyMaterialAdjustments(material, config) {
 }
 
 function createDisplayMaterial(sourceMaterial, config) {
-    if (!config.standardizeMaterials) {
-        return sourceMaterial.clone();
-    }
+    if (!config.standardizeMaterials) return sourceMaterial.clone();
 
     const material = new THREE.MeshStandardMaterial({
         name: sourceMaterial.name,
@@ -1546,163 +745,13 @@ function createDisplayMaterial(sourceMaterial, config) {
     return material;
 }
 
-function showLoading(text = 'Loading model...') {
+function showLoading(text = 'Loading...') {
     document.getElementById('loading-text').textContent = text;
     document.getElementById('loading').classList.remove('hidden');
 }
 
 function hideLoading() {
     document.getElementById('loading').classList.add('hidden');
-}
-
-function detectModels() {
-    return Promise.all(state.modelConfigs.map((config, index) => {
-        return tryLoadModel(config, index);
-    }));
-}
-
-async function ensureModelLoaded(index) {
-    if (state.models[index]) return state.models[index];
-    if (state.loadingPromises.has(index)) return state.loadingPromises.get(index);
-
-    const config = state.modelConfigs[index];
-    if (!config) return null;
-
-    const promise = (async () => {
-        showLoading(`Loading ${config.label || `Model ${index + 1}`}...`);
-        const result = await tryLoadModel(config, index);
-        if (!result?.model) {
-            throw result?.error || new Error(`Could not load ${config.file}`);
-        }
-        return setupModel(result.model, index);
-    })();
-
-    state.loadingPromises.set(index, promise);
-    try {
-        return await promise;
-    } finally {
-        state.loadingPromises.delete(index);
-    }
-}
-
-async function tryLoadModel(config, index) {
-    const ext = config.file.split('.').pop().toLowerCase();
-    const url = encodeURI(`${config.path}${config.file}`);
-    try {
-        const model = await loadModelFromUrl(url, ext, config.path, config);
-        return { model, index };
-    } catch(e) {
-        console.error(`Could not load preset model ${decodeURI(url)}:`, e);
-        return { error: e, index, url: decodeURI(url) };
-    }
-}
-
-function loadModelFromUrl(url, ext, basePath, config = null) {
-    return new Promise((resolve, reject) => {
-        if (ext === 'glb' || ext === 'gltf') {
-            gltfLoader.load(url, (gltf) => {
-                const object = gltf.scene;
-                object.animations = gltf.animations || [];
-                resolve(object);
-            }, undefined, reject);
-        } else if (ext === 'fbx') {
-            const manager = new THREE.LoadingManager();
-            manager.setURLModifier((requestUrl) => redirectFbxTextureUrl(requestUrl, config));
-            const loader = new FBXLoader(manager);
-            loader.load(url, resolve, undefined, reject);
-        } else if (ext === 'obj') {
-            const mtlUrl = url.replace('.obj', '.mtl');
-            mtlLoader.setPath(basePath);
-            mtlLoader.load(mtlUrl.replace(basePath, ''), (materials) => {
-                materials.preload();
-                const loader = new OBJLoader();
-                loader.setMaterials(materials);
-                loader.load(url, resolve, undefined, reject);
-            }, undefined, () => {
-                objLoader.load(url, resolve, undefined, reject);
-            });
-        } else {
-            reject(new Error('Unknown format'));
-        }
-    });
-}
-
-function loadModelFile(file, additionalFiles = []) {
-    return new Promise((resolve, reject) => {
-        const reader = new FileReader();
-        const ext = file.name.split('.').pop().toLowerCase();
-
-        const textureMap = {};
-        additionalFiles.forEach(f => {
-            const fExt = f.name.split('.').pop().toLowerCase();
-            if (['jpg', 'jpeg', 'png', 'tga', 'bmp', 'tiff'].includes(fExt)) {
-                textureMap[f.name] = URL.createObjectURL(f);
-            }
-        });
-
-        if (ext === 'fbx') {
-            reader.onload = (e) => {
-                try {
-                    const loader = new FBXLoader();
-                    loader.manager = new THREE.LoadingManager();
-                    loader.manager.setURLModifier((url) => {
-                        const filename = url.split('/').pop().split('\\').pop();
-                        if (textureMap[filename]) return textureMap[filename];
-                        return url;
-                    });
-                    resolve(loader.parse(e.target.result));
-                } catch(err) { reject(err); }
-            };
-            reader.readAsArrayBuffer(file);
-        } else if (ext === 'obj') {
-            reader.onload = (e) => {
-                try {
-                    const loader = new OBJLoader();
-                    const mtlFile = additionalFiles.find(f => f.name.toLowerCase().endsWith('.mtl'));
-                    if (mtlFile) {
-                        const mtlReader = new FileReader();
-                        mtlReader.onload = (me) => {
-                            const ml = new MTLLoader();
-                            const materials = ml.parse(me.target.result, '');
-                            materials.preload();
-                            loader.setMaterials(materials);
-                            resolve(loader.parse(e.target.result));
-                        };
-                        mtlReader.readAsText(mtlFile);
-                    } else {
-                        resolve(loader.parse(e.target.result));
-                    }
-                } catch(err) { reject(err); }
-            };
-            reader.readAsText(file);
-        } else {
-            reject(new Error(`Unsupported format: .${ext}`));
-        }
-    });
-}
-
-function removeConfiguredMeshes(root, config) {
-    const names = new Set(config.removeMeshes || []);
-    const materials = new Set(config.removeMaterials || []);
-    if (!names.size && !materials.size) return;
-
-    const toRemove = [];
-    root.traverse((child) => {
-        const meshName = child.isMesh ? child.name : '';
-        const geometryName = child.geometry?.name || '';
-        const mats = Array.isArray(child.material) ? child.material : [child.material];
-        const hasRemovedMaterial = mats.some((mat) => materials.has(mat?.name));
-        if (child.isMesh && (names.has(meshName) || names.has(geometryName) || hasRemovedMaterial)) {
-            toRemove.push(child);
-        }
-    });
-
-    toRemove.forEach((child) => {
-        child.parent?.remove(child);
-        child.geometry?.dispose?.();
-        const mats = Array.isArray(child.material) ? child.material : [child.material];
-        mats.forEach((mat) => mat?.dispose?.());
-    });
 }
 
 function removeInvalidGeometryMeshes(root) {
@@ -1739,36 +788,13 @@ function isFiniteBox(box) {
     return isFiniteNumberArray(box.min.toArray()) && isFiniteNumberArray(box.max.toArray());
 }
 
-function getObjectMatchNames(child) {
-    return [
-        child.name,
-        child.geometry?.name,
-        ...(Array.isArray(child.material) ? child.material : [child.material]).map((mat) => mat?.name)
-    ].filter(Boolean).join(' ');
-}
-
-function expandBoxByRenderableMesh(child, targetBox, options = {}) {
+function expandBoxByRenderableMesh(child, targetBox) {
     if (!child.geometry?.attributes?.position || child.visible === false) return;
     child.updateWorldMatrix(true, false);
     if (!isFiniteNumberArray(child.matrixWorld.elements)) return;
 
     const positions = child.geometry.attributes.position;
     if (!positions?.array || !isFiniteNumberArray(positions.array)) return;
-
-    if (options.preciseSkinned && child.isSkinnedMesh && positions.count > 0) {
-        const point = new THREE.Vector3();
-        for (let i = 0; i < positions.count; i++) {
-            point.fromBufferAttribute(positions, i);
-            if (typeof child.applyBoneTransform === 'function') {
-                child.applyBoneTransform(i, point);
-            } else if (typeof child.boneTransform === 'function') {
-                child.boneTransform(i, point);
-            }
-            point.applyMatrix4(child.matrixWorld);
-            if (isFiniteNumberArray(point.toArray())) targetBox.expandByPoint(point);
-        }
-        return;
-    }
 
     child.geometry.computeBoundingBox();
     if (!child.geometry.boundingBox || !isFiniteBox(child.geometry.boundingBox)) return;
@@ -1777,213 +803,68 @@ function expandBoxByRenderableMesh(child, targetBox, options = {}) {
     if (isFiniteBox(meshBox)) targetBox.union(meshBox);
 }
 
-function getSafeBoxFromObject(root, options = {}) {
+function getSafeBoxFromObject(root) {
     const result = new THREE.Box3();
-    const excludePattern = options.excludePattern;
     root.updateWorldMatrix(true, true);
-
     root.traverse((child) => {
         if (!child.isMesh || !child.geometry?.attributes?.position) return;
-        if (excludePattern?.test?.(getObjectMatchNames(child))) return;
-        expandBoxByRenderableMesh(child, result, options);
+        expandBoxByRenderableMesh(child, result);
     });
-
     return result;
 }
 
-function getRotationPivotOffset(root, config) {
-    if (!config.rotationPivot?.mode) return null;
-
-    const fullBox = getSafeBoxFromObject(root);
-    if (fullBox.isEmpty()) return null;
-
-    const bodyBox = new THREE.Box3();
-    const weaponPattern = config.rotationPivot.weaponPattern;
-    const footPattern = config.rotationPivot.footPattern;
-    const footBox = new THREE.Box3();
-    root.traverse((child) => {
-        if (!child.isMesh) return;
-        const names = getObjectMatchNames(child);
-        if (weaponPattern?.test?.(names)) return;
-        child.updateWorldMatrix(true, false);
-        const childBox = getSafeBoxFromObject(child);
-        if (!childBox.isEmpty()) {
-            bodyBox.union(childBox);
-            if (footPattern?.test?.(names)) footBox.union(childBox);
-        }
-    });
-
-    if (bodyBox.isEmpty()) return null;
-    if (config.rotationPivot.mode === 'footMidpointWithoutWeapon' && !footBox.isEmpty()) {
-        const footCenter = footBox.getCenter(new THREE.Vector3());
-        return new THREE.Vector3(footCenter.x, fullBox.min.y, footCenter.z);
-    }
-    const center = bodyBox.getCenter(new THREE.Vector3());
-    return new THREE.Vector3(center.x, fullBox.min.y, center.z);
-}
-
-function setupModel(loadedObject, index) {
-    const config = state.modelConfigs[index];
-    removeConfiguredMeshes(loadedObject, config);
+function setupModel(loadedObject) {
     removeInvalidGeometryMeshes(loadedObject);
     loadedObject.updateMatrixWorld(true);
-    const box = getSafeBoxFromObject(loadedObject, config.viewBounds);
-    if (box.isEmpty()) {
-        box.setFromCenterAndSize(new THREE.Vector3(), new THREE.Vector3(1, 1, 1));
-    }
-    const center = box.getCenter(new THREE.Vector3());
+    const box = getSafeBoxFromObject(loadedObject);
+    if (box.isEmpty()) box.setFromCenterAndSize(new THREE.Vector3(), new THREE.Vector3(1, 1, 1));
     const size = box.getSize(new THREE.Vector3());
     const maxDim = Math.max(size.x, size.y, size.z);
-    const scale = (maxDim > 0 ? 3 / maxDim : 1) * (config.scaleMultiplier || 1);
+    const scale = maxDim > 0 ? 3 / maxDim : 1;
 
     const object = new THREE.Group();
-    object.name = config.label || loadedObject.name || `Model ${index + 1}`;
-    object.animations = loadedObject.animations || [];
-    const modelRoot = config.preserveAnimatedRootTransform ? new THREE.Group() : loadedObject;
-    if (config.preserveAnimatedRootTransform) {
-        modelRoot.name = `${object.name} View Transform`;
-        modelRoot.add(loadedObject);
-        object.add(modelRoot);
-    } else {
-        object.add(loadedObject);
-    }
+    object.name = MODEL_CONFIG.label;
+    object.add(loadedObject);
 
-    modelRoot.scale.multiplyScalar(scale);
-    modelRoot.updateMatrixWorld(true);
+    loadedObject.scale.multiplyScalar(scale);
+    loadedObject.updateMatrixWorld(true);
 
-    const rotationPivotOffset = getRotationPivotOffset(modelRoot, config);
-    const scaledBox = getSafeBoxFromObject(modelRoot, config.viewBounds);
-    const scaledCenter = rotationPivotOffset || scaledBox.getCenter(new THREE.Vector3());
-    modelRoot.position.x -= scaledCenter.x;
-    modelRoot.position.z -= scaledCenter.z;
-    modelRoot.position.y -= scaledBox.min.y;
-    modelRoot.updateMatrixWorld(true);
+    const scaledBox = getSafeBoxFromObject(loadedObject);
+    const scaledCenter = scaledBox.getCenter(new THREE.Vector3());
+    loadedObject.position.x -= scaledCenter.x;
+    loadedObject.position.z -= scaledCenter.z;
+    loadedObject.position.y -= scaledBox.min.y;
+    loadedObject.updateMatrixWorld(true);
 
     object.traverse((child) => {
-        if (child.isMesh) {
-            child.castShadow = true;
-            child.receiveShadow = true;
-        }
+        if (!child.isMesh) return;
+        child.castShadow = true;
+        child.receiveShadow = true;
+
+        const sourceMaterials = child.material
+            ? (Array.isArray(child.material) ? child.material : [child.material])
+            : [standardGreyMaterial];
+        sourceMaterials.forEach((m, materialIndex) => {
+            applyConfiguredTextures(m, MODEL_CONFIG, materialIndex);
+            applyMaterialAdjustments(m, MODEL_CONFIG);
+            if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
+        });
+
+        const displayMaterials = sourceMaterials.map((m, materialIndex) => {
+            const clone = createDisplayMaterial(m, MODEL_CONFIG);
+            applyConfiguredTextures(clone, MODEL_CONFIG, materialIndex);
+            applyMaterialAdjustments(clone, MODEL_CONFIG);
+            return clone;
+        });
+        child.material = Array.isArray(child.material) ? displayMaterials : displayMaterials[0];
     });
-
-    state.originalMaterials.set(object, new Map());
-    object.traverse((child) => {
-        if (child.isMesh) {
-            let sourceMaterials = child.material
-                ? (Array.isArray(child.material) ? child.material : [child.material])
-                : [standardGreyMaterial];
-            sourceMaterials.forEach((m, materialIndex) => {
-                applyConfiguredTextures(m, config, materialIndex);
-                applyMaterialAdjustments(m, config);
-                if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
-                if (config.useEmbeddedOpacity) applyEmbeddedOpacity(m, config.alphaCutoffs?.[m.name]);
-            });
-
-            const useOriginalMaterials = Boolean(config.useOriginalMaterials);
-            const displayMaterials = useOriginalMaterials
-                ? sourceMaterials.map((m, materialIndex) => {
-                    const clone = createDisplayMaterial(m, config);
-                    applyConfiguredTextures(clone, config, materialIndex);
-                    applyMaterialAdjustments(clone, config);
-                    if (config.useEmbeddedOpacity) applyEmbeddedOpacity(clone, config.alphaCutoffs?.[clone.name]);
-                    return clone;
-                })
-                : sourceMaterials.map(() => standardGreyMaterial.clone());
-            const useMaterialArray = Array.isArray(child.material);
-            state.originalMaterials.get(object).set(
-                child,
-                {
-                    display: useMaterialArray ? displayMaterials : displayMaterials[0],
-                    source: useMaterialArray ? sourceMaterials.map(m => m.clone()) : sourceMaterials[0].clone()
-                }
-            );
-            child.material = useMaterialArray ? displayMaterials : displayMaterials[0];
-        }
-    });
-
-    state.models[index] = object;
-
-    const btn = document.querySelector(`[data-model="${index}"]`);
-    if (btn) {
-        btn.textContent = state.modelConfigs[index].label || `Model ${index + 1}`;
-    }
 
     return object;
 }
 
-function applyModelLighting(config = {}) {
-    const rig = {
-        key: 0.75,
-        fill: 0.6,
-        rim: 0.45,
-        ambient: 0.85,
-        hemisphere: 0.7,
-        bruteFill: 0,
-        ...(config.lightRig || {})
-    };
-
-    dirLight.intensity = rig.key;
-    fillLight.intensity = rig.fill;
-    rimLight.intensity = rig.rim;
-    ambientLight.intensity = rig.ambient;
-    hemiLight.intensity = rig.hemisphere;
-    bruteFillLight.intensity = rig.bruteFill;
-    bruteFillLight.visible = rig.bruteFill > 0;
-}
-
-function getPlayableAnimations(animations, config = {}) {
-    const removeTrackPatterns = config.removeAnimationTracks || [];
-    if (!removeTrackPatterns.length) return animations;
-
-    return animations
-        .map((clip) => {
-            const tracks = clip.tracks.filter((track) => {
-                return !removeTrackPatterns.some((pattern) => pattern.test(track.name));
-            });
-            return new THREE.AnimationClip(clip.name, clip.duration, tracks, clip.blendMode);
-        })
-        .filter((clip) => clip.tracks.length > 0);
-}
-
-async function showModel(index) {
-    state.isPaintingStroke = false;
-    state.lastPaintPoint = null;
-    const model = await ensureModelLoaded(index).catch((error) => {
-        console.error(`Could not show model ${index + 1}:`, error);
-        document.getElementById('loading-text').textContent = `Could not load ${state.modelConfigs[index]?.label || `Model ${index + 1}`}.`;
-        return null;
-    });
-    if (!model) return;
-
-    if (state.currentModel) {
-        scene.remove(state.currentModel);
-        clearOverlays();
-    }
-
-    state.currentModelIndex = index;
-    model.rotation.set(0, 0, 0);
-    state.autoDisplayElapsed = 0;
-    state.currentModel = model;
-    scene.add(model);
-    applyModelLighting(state.modelConfigs[index]);
-
-    state.animations = getPlayableAnimations(model.animations || [], state.modelConfigs[index]);
-    setupAnimations(model);
-    updateStats(model);
-    applyRenderMode();
-    applyPaintingGreyOverride();
-    fitCamera(model, state.modelConfigs[index]);
-    drawUVMap();
-
-    document.querySelectorAll('.model-btn').forEach(btn => {
-        btn.classList.toggle('active', parseInt(btn.dataset.model) === index);
-    });
-    hideLoading();
-}
-
-function fitCamera(object, config = {}) {
+function fitCamera(object) {
     object.updateMatrixWorld(true);
-    const box = getSafeBoxFromObject(object, config.viewBounds);
+    const box = getSafeBoxFromObject(object);
     if (box.isEmpty()) return;
     const center = box.getCenter(new THREE.Vector3());
     const size = box.getSize(new THREE.Vector3());
@@ -1991,542 +872,26 @@ function fitCamera(object, config = {}) {
     const radius = size.length() * 0.5;
     const fov = THREE.MathUtils.degToRad(camera.fov);
     const fitHeightDistance = radius / Math.sin(fov / 2);
-    const dist = Math.max(fitHeightDistance * 0.92, maxDim * 1.08) * (config.cameraDistanceScale || 1);
-    const target = center.clone();
-    if (config.cameraTargetOffset) {
-        target.x += config.cameraTargetOffset.x || 0;
-        target.y += config.cameraTargetOffset.y || 0;
-        target.z += config.cameraTargetOffset.z || 0;
-    }
+    const dist = Math.max(fitHeightDistance * 0.92, maxDim * 1.08);
 
-    controls.target.copy(target);
-    camera.position.set(target.x + dist * 0.58, target.y + dist * 0.34, target.z + dist * 0.58);
+    controls.target.copy(center);
+    camera.position.set(center.x + dist * 0.58, center.y + dist * 0.34, center.z + dist * 0.58);
     camera.near = Math.max(dist / 100, 0.01);
     camera.far = dist * 100;
     camera.updateProjectionMatrix();
     controls.update();
 }
 
-// ─── Stats ───
-function updateStats(object) {
-    let triangles = 0, vertices = 0, meshCount = 0;
-    const materialSet = new Set();
-    const textureSet = new Set();
-
-    object.traverse((child) => {
-        if (child.isMesh) {
-            meshCount++;
-            const geo = child.geometry;
-            if (geo.index) triangles += geo.index.count / 3;
-            else if (geo.attributes.position) triangles += geo.attributes.position.count / 3;
-            if (geo.attributes.position) vertices += geo.attributes.position.count;
-
-            const materialRecord = state.originalMaterials.get(object)?.get(child);
-            const sourceMats = materialRecord?.source ?? child.material;
-            const mats = Array.isArray(sourceMats) ? sourceMats : [sourceMats];
-            mats.forEach(m => {
-                if (!m) return;
-                materialSet.add(m.uuid);
-                ['map','normalMap','roughnessMap','metalnessMap','emissiveMap','aoMap','alphaMap','specularMap','bumpMap','displacementMap'].forEach(prop => {
-                    if (m[prop]) textureSet.add(m[prop].uuid);
-                });
-            });
-        }
-    });
-
-    document.getElementById('stat-triangles').textContent = triangles.toLocaleString();
-    document.getElementById('stat-vertices').textContent = vertices.toLocaleString();
-    document.getElementById('stat-meshes').textContent = meshCount;
-    document.getElementById('stat-materials').textContent = materialSet.size;
-    document.getElementById('stat-textures').textContent = textureSet.size;
-}
-
-// ─── Animations ───
-function setupAnimations(model) {
-    if (state.mixer) { state.mixer.stopAllAction(); state.mixer = null; }
-    state.currentAction = null;
-    state.animPlaying = false;
-
-    const panel = document.getElementById('anim-panel');
-    const select = document.getElementById('anim-select');
-    select.innerHTML = '';
-
-    if (state.animations.length === 0) { panel.style.display = 'none'; return; }
-
-    panel.style.display = 'flex';
-    state.mixer = new THREE.AnimationMixer(model);
-    const defaultSpeed = state.modelConfigs[state.currentModelIndex]?.animationSpeed || 1;
-    state.mixer.timeScale = defaultSpeed;
-    document.getElementById('anim-speed').value = defaultSpeed;
-    document.getElementById('anim-speed-val').textContent = defaultSpeed.toFixed(1) + 'x';
-
-    state.animations.forEach((clip, i) => {
-        const opt = document.createElement('option');
-        opt.value = i;
-        opt.textContent = clip.name || `Animation ${i + 1}`;
-        select.appendChild(opt);
-    });
-
-    playAnimation(0);
-}
-
-function playAnimation(index) {
-    if (!state.mixer || !state.animations[index]) return;
-    if (state.currentAction) state.currentAction.stop();
-    state.currentAction = state.mixer.clipAction(state.animations[index]);
-    state.currentAction.play();
-    state.animPlaying = true;
-    document.getElementById('anim-play').innerHTML = '&#9646;&#9646;';
-}
-
-document.getElementById('anim-select').addEventListener('change', (e) => playAnimation(parseInt(e.target.value)));
-
-document.getElementById('anim-play').addEventListener('click', () => {
-    if (!state.currentAction) return;
-    state.animPlaying = !state.animPlaying;
-    state.currentAction.paused = !state.animPlaying;
-    document.getElementById('anim-play').innerHTML = state.animPlaying ? '&#9646;&#9646;' : '&#9654;';
-});
-
-document.getElementById('anim-speed').addEventListener('input', (e) => {
-    const speed = parseFloat(e.target.value);
-    if (state.mixer) state.mixer.timeScale = speed;
-    document.getElementById('anim-speed-val').textContent = speed.toFixed(1) + 'x';
-});
-
-document.getElementById('anim-scrub').addEventListener('input', (e) => {
-    if (!state.currentAction) return;
-    const clip = state.currentAction.getClip();
-    state.currentAction.time = (e.target.value / 100) * clip.duration;
-    state.mixer.update(0);
-});
-
-// ─── 2D UV Map Drawing ───
-function drawUVMap() {
-    const canvas = document.getElementById('uv-canvas');
-    const ctx = canvas.getContext('2d');
-    const panel = document.getElementById('uv-panel');
-    const view = state.uvView;
-
-    canvas.width = panel.clientWidth || 800;
-    canvas.height = panel.clientHeight || 800;
-    const w = canvas.width;
-    const h = canvas.height;
-
-    ctx.clearRect(0, 0, w, h);
-    ctx.fillStyle = '#f0f0f0';
-    ctx.fillRect(0, 0, w, h);
-
-    const image = getUVLayoutImage(state.currentModel);
-    if (!image) return;
-
-    const drawSize = Math.min(w, h) * 0.9;
-    const ox = (w - drawSize) / 2;
-    const oy = (h - drawSize) / 2;
-
-    ctx.save();
-    ctx.translate(w / 2 + view.offsetX, h / 2 + view.offsetY);
-    ctx.scale(view.scale, view.scale);
-    ctx.translate(-w / 2, -h / 2);
-    ctx.drawImage(image, ox, oy, drawSize, drawSize);
-    ctx.restore();
-}
-
-function getUVLayoutImage(model) {
-    if (!model) return null;
-    if (state.uvLayoutImages.has(model)) return state.uvLayoutImages.get(model);
-
-    const image = createUVLayoutImage(model);
-    state.uvLayoutImages.set(model, image);
-    return image;
-}
-
-function createUVLayoutImage(model) {
-    const size = 1400;
-    const canvas = document.createElement('canvas');
-    canvas.width = size;
-    canvas.height = size;
-    const ctx = canvas.getContext('2d');
-
-    // Draw checkerboard background in UV space
-    const cells = 8;
-    const margin = size * 0.05;
-    const drawSize = size - margin * 2;
-    const ox = margin;
-    const oy = margin;
-    const cellSize = drawSize / cells;
-    ctx.fillStyle = '#f0f0f0';
-    ctx.fillRect(0, 0, size, size);
-
-    for (let y = 0; y < cells; y++) {
-        for (let x = 0; x < cells; x++) {
-            ctx.fillStyle = (x + y) % 2 === 0 ? '#e4e4e4' : '#dcdcdc';
-            ctx.fillRect(ox + x * cellSize, oy + y * cellSize, cellSize, cellSize);
-        }
-    }
-
-    // UV space border
-    ctx.strokeStyle = '#999';
-    ctx.lineWidth = 2;
-    ctx.strokeRect(ox, oy, drawSize, drawSize);
-
-    // Collect UV edges from all meshes
-    const colors = ['#2563eb', '#dc2626', '#16a34a', '#d97706', '#7c3aed', '#db2777'];
-    let meshIdx = 0;
-
+// Model starts plain grey (real textures hidden) so painting starts on a neutral base.
+function resetModelToGrey(model) {
     model.traverse((child) => {
-        if (!child.isMesh) return;
-        const geo = child.geometry;
-        const uv = geo.attributes.uv;
-        if (!uv) return;
-
-        const idx = geo.index;
-        ctx.strokeStyle = colors[meshIdx % colors.length];
-        ctx.lineWidth = 1;
-        ctx.globalAlpha = 0.7;
-
-        if (idx) {
-            for (let i = 0; i < idx.count; i += 3) {
-                const a = idx.getX(i), b = idx.getX(i+1), c = idx.getX(i+2);
-                const ax = ox + uv.getX(a) * drawSize, ay = oy + (1 - uv.getY(a)) * drawSize;
-                const bx = ox + uv.getX(b) * drawSize, by = oy + (1 - uv.getY(b)) * drawSize;
-                const cx = ox + uv.getX(c) * drawSize, cy = oy + (1 - uv.getY(c)) * drawSize;
-                ctx.beginPath();
-                ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.lineTo(cx, cy); ctx.closePath();
-                ctx.stroke();
-            }
-        } else {
-            for (let i = 0; i < uv.count; i += 3) {
-                const ax = ox + uv.getX(i) * drawSize, ay = oy + (1 - uv.getY(i)) * drawSize;
-                const bx = ox + uv.getX(i+1) * drawSize, by = oy + (1 - uv.getY(i+1)) * drawSize;
-                const cx = ox + uv.getX(i+2) * drawSize, cy = oy + (1 - uv.getY(i+2)) * drawSize;
-                ctx.beginPath();
-                ctx.moveTo(ax, ay); ctx.lineTo(bx, by); ctx.lineTo(cx, cy); ctx.closePath();
-                ctx.stroke();
-            }
-        }
-
-        ctx.globalAlpha = 1;
-        meshIdx++;
-    });
-
-    const img = new Image();
-    img.src = canvas.toDataURL('image/jpeg', 0.82);
-    return img;
-}
-
-function clampUVView() {
-    state.uvView.scale = Math.min(8, Math.max(0.35, state.uvView.scale));
-}
-
-function zoomUVView(factor, clientX, clientY) {
-    const canvas = document.getElementById('uv-canvas');
-    const rect = canvas.getBoundingClientRect();
-    const view = state.uvView;
-    const beforeScale = view.scale;
-    const x = clientX - rect.left - rect.width / 2;
-    const y = clientY - rect.top - rect.height / 2;
-
-    view.scale *= factor;
-    clampUVView();
-    const ratio = view.scale / beforeScale;
-    view.offsetX = x - (x - view.offsetX) * ratio;
-    view.offsetY = y - (y - view.offsetY) * ratio;
-    drawUVMap();
-}
-
-function resetUVView() {
-    state.uvView.scale = 1;
-    state.uvView.offsetX = 0;
-    state.uvView.offsetY = 0;
-    drawUVMap();
-}
-
-function toggle2DView(show) {
-    state.show2D = show;
-    const panel = document.getElementById('uv-panel');
-    const statsPanel = document.getElementById('stats-panel');
-
-    if (show) {
-        panel.classList.add('open');
-        container.style.right = '50%';
-        statsPanel.style.right = 'calc(50% + 12px)';
-    } else {
-        panel.classList.remove('open');
-        container.style.right = '0';
-        statsPanel.style.right = '12px';
-    }
-
-    setTimeout(() => {
-        handleResize();
-        if (show) drawUVMap();
-    }, 320);
-}
-
-// ─── Render modes ───
-function getPointerDistance(points) {
-    if (points.length < 2) return 0;
-    const dx = points[0].clientX - points[1].clientX;
-    const dy = points[0].clientY - points[1].clientY;
-    return Math.hypot(dx, dy);
-}
-
-function getPointerCenter(points) {
-    return {
-        clientX: points.reduce((sum, p) => sum + p.clientX, 0) / points.length,
-        clientY: points.reduce((sum, p) => sum + p.clientY, 0) / points.length
-    };
-}
-
-function setupUVControls() {
-    const canvas = document.getElementById('uv-canvas');
-    const view = state.uvView;
-
-    canvas.addEventListener('wheel', (e) => {
-        e.preventDefault();
-        zoomUVView(e.deltaY < 0 ? 1.12 : 0.88, e.clientX, e.clientY);
-    }, { passive: false });
-
-    canvas.addEventListener('pointerdown', (e) => {
-        e.preventDefault();
-        canvas.setPointerCapture(e.pointerId);
-        view.activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
-        view.isDragging = true;
-        view.lastX = e.clientX;
-        view.lastY = e.clientY;
-        view.lastPinchDistance = getPointerDistance(Array.from(view.activePointers.values()));
-    });
-
-    canvas.addEventListener('pointermove', (e) => {
-        if (!view.activePointers.has(e.pointerId)) return;
-        e.preventDefault();
-        view.activePointers.set(e.pointerId, { clientX: e.clientX, clientY: e.clientY });
-        const points = Array.from(view.activePointers.values());
-
-        if (points.length >= 2) {
-            const distance = getPointerDistance(points);
-            const center = getPointerCenter(points);
-            if (view.lastPinchDistance > 0 && distance > 0) {
-                zoomUVView(distance / view.lastPinchDistance, center.clientX, center.clientY);
-            }
-            view.lastPinchDistance = distance;
-            return;
-        }
-
-        if (view.isDragging) {
-            view.offsetX += e.clientX - view.lastX;
-            view.offsetY += e.clientY - view.lastY;
-            view.lastX = e.clientX;
-            view.lastY = e.clientY;
-            drawUVMap();
-        }
-    });
-
-    ['pointerup', 'pointercancel', 'pointerleave'].forEach(type => {
-        canvas.addEventListener(type, (e) => {
-            view.activePointers.delete(e.pointerId);
-            view.isDragging = view.activePointers.size > 0;
-            const points = Array.from(view.activePointers.values());
-            view.lastPinchDistance = getPointerDistance(points);
-            if (points.length === 1) {
-                view.lastX = points[0].clientX;
-                view.lastY = points[0].clientY;
-            }
-        });
-    });
-
-    canvas.addEventListener('dblclick', resetUVView);
-}
-
-function clearOverlays() {
-    state.normalHelpers.forEach(h => {
-        h.parent?.remove(h);
-        h.dispose?.();
-    });
-    state.normalHelpers = [];
-    state.wireframeMeshes.forEach(m => {
-        m.parent?.remove(m);
-        m.geometry?.dispose();
-        m.material?.dispose();
-    });
-    state.wireframeMeshes = [];
-    state.wireframeMaterials.forEach(({ mesh, material, wireMaterial }) => {
-        const tempMaterials = Array.isArray(wireMaterial) ? wireMaterial : [wireMaterial];
-        tempMaterials.forEach(mat => mat?.dispose?.());
-        mesh.material = material;
-    });
-    state.wireframeMaterials = [];
-}
-
-function restoreOriginalMaterials() {
-    if (!state.currentModel) return;
-    const origMap = state.originalMaterials.get(state.currentModel);
-    if (!origMap) return;
-    state.currentModel.traverse((child) => {
-        if (child.isMesh && origMap.has(child)) {
-            const orig = origMap.get(child);
-            const display = orig.display ?? orig;
-            child.material = Array.isArray(display) ? display.map(m => m.clone()) : display.clone();
-        }
-    });
-}
-
-function applyRenderMode() {
-    if (!state.currentModel) return;
-
-    clearOverlays();
-    restoreOriginalMaterials();
-
-    const model = state.currentModel;
-    const mode = state.renderMode;
-    const side = THREE.DoubleSide;
-
-    model.traverse((child) => {
-        if (!child.isMesh) return;
-        const materialRecord = state.originalMaterials.get(model)?.get(child);
-        if (!materialRecord) return;
-        const sourceMats = materialRecord.source ?? materialRecord;
-        const sourceArray = Array.isArray(sourceMats) ? sourceMats : [sourceMats];
-
-        switch (mode) {
-            case 'final': break;
-            case 'nopost': break;
-
-            case 'basecolor': {
-                child.material = sourceArray.map(m => {
-                    const mat = new THREE.MeshBasicMaterial({ color: m.color || 0xffffff, side });
-                    if (m.map) mat.map = m.map;
-                    return mat;
-                });
-                if (!Array.isArray(sourceMats)) child.material = child.material[0];
-                break;
-            }
-            case 'metalness': {
-                child.material = sourceArray.map(m => {
-                    if (m.metalnessMap) return new THREE.MeshBasicMaterial({ map: m.metalnessMap, side });
-                    const v = m.metalness !== undefined ? m.metalness : 0;
-                    return new THREE.MeshBasicMaterial({ color: new THREE.Color(v, v, v), side });
-                });
-                if (!Array.isArray(sourceMats)) child.material = child.material[0];
-                break;
-            }
-            case 'roughness': {
-                child.material = sourceArray.map(m => {
-                    if (m.roughnessMap) return new THREE.MeshBasicMaterial({ map: m.roughnessMap, side });
-                    const v = m.roughness !== undefined ? m.roughness : 1;
-                    return new THREE.MeshBasicMaterial({ color: new THREE.Color(v, v, v), side });
-                });
-                if (!Array.isArray(sourceMats)) child.material = child.material[0];
-                break;
-            }
-            case 'normal': {
-                child.material = sourceArray.map(m => {
-                    if (m.normalMap) return new THREE.MeshBasicMaterial({ map: m.normalMap, side });
-                    return new THREE.MeshNormalMaterial({ side });
-                });
-                if (!Array.isArray(sourceMats)) child.material = child.material[0];
-                break;
-            }
-            case 'opacity': {
-                child.material = sourceArray.map(m => {
-                    if (m.userData?.opacityViewMap) return new THREE.MeshBasicMaterial({ map: m.userData.opacityViewMap, side });
-                    if (m.alphaMap) return new THREE.MeshBasicMaterial({ map: m.alphaMap, side });
-                    const v = m.opacity !== undefined ? m.opacity : 1;
-                    return new THREE.MeshBasicMaterial({ color: new THREE.Color(v, v, v), side });
-                });
-                if (!Array.isArray(sourceMats)) child.material = child.material[0];
-                break;
-            }
-            case 'emission': {
-                child.material = sourceArray.map(m => {
-                    const mat = new THREE.MeshBasicMaterial({ color: 0x000000, side });
-                    if (m.emissiveMap) mat.map = m.emissiveMap;
-                    else if (m.emissive) mat.color.copy(m.emissive);
-                    return mat;
-                });
-                if (!Array.isArray(sourceMats)) child.material = child.material[0];
-                break;
-            }
-            case 'matcap': {
-                child.material = new THREE.MeshMatcapMaterial({ matcap: matcapTexture, side });
-                break;
-            }
-            case 'matcap-surface': {
-                const origMat = Array.isArray(sourceMats) ? sourceMats[0] : sourceMats;
-                const mat = new THREE.MeshMatcapMaterial({ matcap: matcapTexture, side });
-                if (origMat.map) mat.map = origMat.map;
-                child.material = mat;
-                break;
-            }
-        }
-    });
-
-    if (state.wireframeOverlay) addWireframeOverlay();
-    if (state.vertexNormalsVisible) addVertexNormals();
-    if (state.uvCheckerVisible) applyUVChecker();
-
-    if (mode === 'nopost') {
-        renderer.toneMapping = THREE.NoToneMapping;
-        renderer.toneMappingExposure = 1.0;
-    } else if (mode === 'final') {
-        renderer.toneMapping = THREE.ACESFilmicToneMapping;
-        renderer.toneMappingExposure = 1.2;
-    } else {
-        renderer.toneMapping = THREE.NoToneMapping;
-    }
-}
-
-function addWireframeOverlay() {
-    if (!state.currentModel) return;
-    state.currentModel.traverse((child) => {
-        if (!child.isMesh) return;
-        if (child.isSkinnedMesh) {
-            const originalMaterial = child.material;
-            const materials = Array.isArray(child.material) ? child.material : [child.material];
-            const wireMaterials = materials.map(() => new THREE.MeshBasicMaterial({
-                color: state.wireframeColor,
-                wireframe: true,
-                side: THREE.DoubleSide,
-                depthTest: true,
-                transparent: true,
-                opacity: 0.95
-            }));
-            child.material = Array.isArray(child.material) ? wireMaterials : wireMaterials[0];
-            state.wireframeMaterials.push({ mesh: child, material: originalMaterial, wireMaterial: child.material });
-            return;
-        }
-
-        const wireGeo = new THREE.WireframeGeometry(child.geometry);
-        const lineMat = new THREE.LineBasicMaterial({
-            color: state.wireframeColor,
-            linewidth: state.wireframeWidth,
-            depthTest: true,
-            transparent: true,
-            opacity: 0.6
-        });
-        const wireframe = new THREE.LineSegments(wireGeo, lineMat);
-        // Parent wireframe to the mesh so it inherits transforms and rotation
-        child.add(wireframe);
-        state.wireframeMeshes.push(wireframe);
-    });
-}
-
-function addVertexNormals() {
-    if (!state.currentModel) return;
-    state.currentModel.traverse((child) => {
-        if (!child.isMesh) return;
-        const helper = new VertexNormalsHelper(child, 0.05, 0x00aaff);
-        scene.add(helper);
-        state.normalHelpers.push(helper);
-    });
-}
-
-function applyUVChecker() {
-    if (!state.currentModel) return;
-    state.currentModel.traverse((child) => {
         if (!child.isMesh) return;
         const mats = Array.isArray(child.material) ? child.material : [child.material];
-        mats.forEach(m => { m.map = uvCheckerTexture; m.needsUpdate = true; });
+        mats.forEach((m) => {
+            m.map = null;
+            m.color?.set(PAINT_BASE_GREY);
+            m.needsUpdate = true;
+        });
     });
 }
 
@@ -2577,17 +942,12 @@ function hexToRgb(hex) {
     return [(n >> 16) & 255, (n >> 8) & 255, n & 255];
 }
 
-function getPaintCanonicalMaterial(mesh, materialIndex) {
-    const model = state.currentModel;
-    const record = model && state.originalMaterials.get(model)?.get(mesh);
-    if (!record) return null;
-    return Array.isArray(record.display) ? (record.display[materialIndex] || record.display[0]) : record.display;
+function getPaintTargetMaterial(mesh, materialIndex) {
+    return Array.isArray(mesh.material) ? (mesh.material[materialIndex] || mesh.material[0]) : mesh.material;
 }
 
-// Note: loaders (notably GLTFLoader) can share one material object across several
-// mesh nodes. Painting such a material paints every mesh that uses it.
-// Painting mode always paints on top of a flat grey base (see applyPaintingGreyOverride) —
-// the model's real textures are hidden while painting and restored when leaving the tab.
+// Note: FBXLoader can in principle reuse one material object across several mesh
+// nodes. Painting such a material paints every mesh that uses it.
 function getOrCreatePaintCanvas(material) {
     let data = state.paintData.get(material);
     if (data) return data;
@@ -2614,42 +974,6 @@ function getOrCreatePaintCanvas(material) {
     data = { canvas, ctx, baseCanvas, texture, size };
     state.paintData.set(material, data);
     return data;
-}
-
-function syncLiveMaterial(mesh, materialIndex, canonicalMaterial) {
-    const data = state.paintData.get(canonicalMaterial);
-    if (!data) return;
-    const live = Array.isArray(mesh.material) ? mesh.material[materialIndex] : mesh.material;
-    if (!live) return;
-    live.map = data.texture;
-    live.color?.set(0xffffff);
-    live.needsUpdate = true;
-}
-
-// Forces every mesh in the current model to plain grey while Painting mode is active
-// (regardless of its real textures), except meshes that already have paint on them.
-function applyPaintingGreyOverride() {
-    if (state.activePanel !== 'painting' || !state.currentModel) return;
-    state.currentModel.traverse((child) => {
-        if (!child.isMesh) return;
-        const record = state.originalMaterials.get(state.currentModel)?.get(child);
-        if (!record) return;
-        const canonicalArray = Array.isArray(record.display) ? record.display : [record.display];
-        const liveArray = Array.isArray(child.material) ? child.material : [child.material];
-        canonicalArray.forEach((canonicalMaterial, i) => {
-            const live = liveArray[i];
-            if (!live) return;
-            const data = state.paintData.get(canonicalMaterial);
-            if (data) {
-                live.map = data.texture;
-                live.color?.set(0xffffff);
-            } else {
-                live.map = null;
-                live.color?.set(PAINT_BASE_GREY);
-            }
-            live.needsUpdate = true;
-        });
-    });
 }
 
 // Soft, feathered stamp: opaque core fading to transparent at the edge, so brush strokes
@@ -2785,11 +1109,11 @@ function getUVShellGroups(geometry, materialIndex) {
 const PAINT_UNDO_LIMIT = 10;
 const paintUndoStack = [];
 
-function pushPaintUndoSnapshot(canonicalMaterial) {
-    const data = state.paintData.get(canonicalMaterial);
+function pushPaintUndoSnapshot(material) {
+    const data = state.paintData.get(material);
     if (!data) return;
     const snapshot = data.ctx.getImageData(0, 0, data.size, data.size);
-    paintUndoStack.push({ material: canonicalMaterial, imageData: snapshot });
+    paintUndoStack.push({ material, imageData: snapshot });
     if (paintUndoStack.length > PAINT_UNDO_LIMIT) paintUndoStack.shift();
 }
 
@@ -2805,11 +1129,10 @@ function undoPaint() {
 function bucketFill(hit) {
     const mesh = hit.object;
     const materialIndex = hit.face?.materialIndex || 0;
-    const canonicalMaterial = getPaintCanonicalMaterial(mesh, materialIndex);
-    if (!canonicalMaterial) return;
-    const data = getOrCreatePaintCanvas(canonicalMaterial);
-    syncLiveMaterial(mesh, materialIndex, canonicalMaterial);
-    pushPaintUndoSnapshot(canonicalMaterial);
+    const material = getPaintTargetMaterial(mesh, materialIndex);
+    if (!material) return;
+    const data = getOrCreatePaintCanvas(material);
+    pushPaintUndoSnapshot(material);
 
     const ctx = data.ctx;
     ctx.fillStyle = state.paintColor;
@@ -2837,33 +1160,31 @@ function bucketFill(hit) {
 function applyPaintStroke(hit, isStart) {
     const mesh = hit.object;
     const materialIndex = hit.face?.materialIndex || 0;
-    const canonicalMaterial = getPaintCanonicalMaterial(mesh, materialIndex);
-    if (!canonicalMaterial) return;
-    const data = getOrCreatePaintCanvas(canonicalMaterial);
-    syncLiveMaterial(mesh, materialIndex, canonicalMaterial);
+    const material = getPaintTargetMaterial(mesh, materialIndex);
+    if (!material) return;
+    const data = getOrCreatePaintCanvas(material);
 
     const x = hit.uv.x * data.size;
     const y = (1 - hit.uv.y) * data.size;
     const radius = state.brushSize / 2;
     const erase = state.paintTool === 'eraser';
 
-    if (isStart || !state.lastPaintPoint || state.lastPaintPoint.material !== canonicalMaterial) {
-        pushPaintUndoSnapshot(canonicalMaterial);
+    if (isStart || !state.lastPaintPoint || state.lastPaintPoint.material !== material) {
+        pushPaintUndoSnapshot(material);
         stampAt(data, x, y, radius, state.paintColor, erase);
         data.texture.needsUpdate = true;
     } else {
         paintSegment(data, state.lastPaintPoint.x, state.lastPaintPoint.y, x, y, radius, state.paintColor, erase);
     }
-    state.lastPaintPoint = { x, y, material: canonicalMaterial };
+    state.lastPaintPoint = { x, y, material };
 }
 
 function pickColorAt(hit) {
     const mesh = hit.object;
     const materialIndex = hit.face?.materialIndex || 0;
-    const canonicalMaterial = getPaintCanonicalMaterial(mesh, materialIndex);
-    if (!canonicalMaterial) return;
-    const data = getOrCreatePaintCanvas(canonicalMaterial);
-    syncLiveMaterial(mesh, materialIndex, canonicalMaterial);
+    const material = getPaintTargetMaterial(mesh, materialIndex);
+    if (!material) return;
+    const data = getOrCreatePaintCanvas(material);
 
     const px = Math.min(data.size - 1, Math.max(0, Math.floor(hit.uv.x * data.size)));
     const py = Math.min(data.size - 1, Math.max(0, Math.floor((1 - hit.uv.y) * data.size)));
@@ -3044,7 +1365,7 @@ function getWheelLocalPoint(e) {
 function handleWheelPointer(p) {
     const canvas = document.getElementById('color-wheel-canvas');
     const size = canvas.width;
-    const { cx, cy, innerR, triR } = getWheelGeometry(size);
+    const { cx, cy, triR } = getWheelGeometry(size);
 
     if (wheelDragMode === 'hue') {
         state.paintHue = (Math.atan2(p.y - cy, p.x - cx) * 180 / Math.PI + 360) % 360;
@@ -3071,36 +1392,9 @@ function startWheelDrag(e) {
     handleWheelPointer(p);
 }
 
-// Middle-click always pans the camera; scroll wheel still zooms regardless of this mapping.
-const INSPECTOR_MOUSE_BUTTONS = { LEFT: THREE.MOUSE.ROTATE, MIDDLE: THREE.MOUSE.PAN, RIGHT: THREE.MOUSE.PAN };
-const PAINTING_MOUSE_BUTTONS = { LEFT: null, MIDDLE: THREE.MOUSE.PAN, RIGHT: THREE.MOUSE.ROTATE };
-const INSPECTOR_TOUCHES = { ONE: THREE.TOUCH.ROTATE, TWO: THREE.TOUCH.DOLLY_PAN };
-const PAINTING_TOUCHES = { ONE: null, TWO: THREE.TOUCH.DOLLY_PAN };
-
-function setActivePanel(panel) {
-    state.activePanel = panel;
-    document.getElementById('panel-inspector').style.display = panel === 'inspector' ? '' : 'none';
-    document.getElementById('panel-painting').style.display = panel === 'painting' ? '' : 'none';
-    document.querySelectorAll('.tab-btn[data-panel]').forEach(btn => {
-        btn.classList.toggle('active', btn.dataset.panel === panel);
-    });
-
-    controls.mouseButtons = panel === 'painting' ? PAINTING_MOUSE_BUTTONS : INSPECTOR_MOUSE_BUTTONS;
-    controls.touches = panel === 'painting' ? PAINTING_TOUCHES : INSPECTOR_TOUCHES;
-
-    if (panel === 'painting' && state.renderMode !== 'final' && state.renderMode !== 'nopost') {
-        state.renderMode = 'final';
-        document.querySelectorAll('#panel-inspector .sidebar-item[data-mode]').forEach(si => {
-            if (!toggleModes.includes(si.dataset.mode)) si.classList.toggle('active', si.dataset.mode === 'final');
-        });
-    }
-    applyRenderMode();
-    if (panel === 'painting') applyPaintingGreyOverride();
-}
-
 function setPaintTool(tool) {
     state.paintTool = tool;
-    document.querySelectorAll('#panel-painting [data-tool]').forEach(item => {
+    document.querySelectorAll('#sidebar [data-tool]').forEach(item => {
         item.classList.toggle('active', item.dataset.tool === tool);
     });
     document.getElementById('bucket-mode-label').style.display = tool === 'bucket' ? '' : 'none';
@@ -3111,14 +1405,14 @@ function setPaintTool(tool) {
 
 function setBucketMode(mode) {
     state.bucketMode = mode;
-    document.querySelectorAll('#panel-painting [data-bucket-mode]').forEach(item => {
+    document.querySelectorAll('#sidebar [data-bucket-mode]').forEach(item => {
         item.classList.toggle('active', item.dataset.bucketMode === mode);
     });
 }
 
 function setBrushHardness(mode) {
     state.brushHardness = mode;
-    document.querySelectorAll('#panel-painting [data-hardness]').forEach(item => {
+    document.querySelectorAll('#sidebar [data-hardness]').forEach(item => {
         item.classList.toggle('active', item.dataset.hardness === mode);
     });
 }
@@ -3152,7 +1446,7 @@ function setupPaintControls() {
     const canvas = renderer.domElement;
 
     canvas.addEventListener('pointerdown', (e) => {
-        if (state.activePanel !== 'painting' || e.button !== 0) return;
+        if (e.button !== 0) return;
         const hit = getPaintHit(e.clientX, e.clientY);
         if (!hit) return;
         e.preventDefault();
@@ -3186,19 +1480,15 @@ function setupPaintControls() {
         });
     });
 
-    document.querySelectorAll('.tab-btn[data-panel]').forEach(btn => {
-        btn.addEventListener('click', () => setActivePanel(btn.dataset.panel));
-    });
-
-    document.querySelectorAll('#panel-painting [data-tool]').forEach(item => {
+    document.querySelectorAll('#sidebar [data-tool]').forEach(item => {
         item.addEventListener('click', () => setPaintTool(item.dataset.tool));
     });
 
-    document.querySelectorAll('#panel-painting [data-bucket-mode]').forEach(item => {
+    document.querySelectorAll('#sidebar [data-bucket-mode]').forEach(item => {
         item.addEventListener('click', () => setBucketMode(item.dataset.bucketMode));
     });
 
-    document.querySelectorAll('#panel-painting [data-hardness]').forEach(item => {
+    document.querySelectorAll('#sidebar [data-hardness]').forEach(item => {
         item.addEventListener('click', () => setBrushHardness(item.dataset.hardness));
     });
 
@@ -3223,113 +1513,6 @@ function setupPaintControls() {
     setBrushHardness(state.brushHardness);
     setPaintTool(state.paintTool);
     setPaintColor(state.paintColor);
-    setActivePanel('inspector');
-}
-
-// ─── Sidebar interaction ───
-const sidebarItems = document.querySelectorAll('#panel-inspector .sidebar-item');
-const toggleModes = ['wireframe', 'vertexnormals', 'uvchecker', 'grid', 'autorotate', 'autodisplay', 'darkbg'];
-
-sidebarItems.forEach(item => {
-    item.addEventListener('click', () => {
-        const mode = item.dataset.mode;
-
-        if (toggleModes.includes(mode)) {
-            item.classList.toggle('active');
-            if (mode === 'wireframe') state.wireframeOverlay = item.classList.contains('active');
-            if (mode === 'vertexnormals') state.vertexNormalsVisible = item.classList.contains('active');
-            if (mode === 'uvchecker') state.uvCheckerVisible = item.classList.contains('active');
-            if (mode === 'grid') {
-                state.showGrid = item.classList.contains('active');
-                gridHelper.visible = state.showGrid;
-            }
-            if (mode === 'autorotate') {
-                state.autoRotate = item.classList.contains('active');
-                if (!state.autoRotate) setAutoDisplay(false);
-                updateAutoRotateUI();
-            }
-            if (mode === 'autodisplay') {
-                setAutoDisplay(item.classList.contains('active'));
-            }
-            if (mode === 'darkbg') {
-                state.darkBackground = item.classList.contains('active');
-                updateViewportBackground();
-            }
-            applyRenderMode();
-            return;
-        }
-
-        sidebarItems.forEach(si => {
-            if (!toggleModes.includes(si.dataset.mode)) si.classList.remove('active');
-        });
-        item.classList.add('active');
-        state.renderMode = mode;
-        applyRenderMode();
-    });
-});
-
-// Wireframe colors
-document.querySelectorAll('.color-swatch').forEach(swatch => {
-    swatch.addEventListener('click', () => {
-        document.querySelectorAll('.color-swatch').forEach(s => s.classList.remove('active'));
-        swatch.classList.add('active');
-        state.wireframeColor = swatch.dataset.color;
-        if (state.wireframeOverlay) applyRenderMode();
-    });
-});
-
-// Wireframe width
-document.getElementById('wireframe-width').addEventListener('input', (e) => {
-    state.wireframeWidth = parseFloat(e.target.value);
-    document.getElementById('wireframe-width-val').textContent = state.wireframeWidth;
-    if (state.wireframeOverlay) applyRenderMode();
-});
-
-// Viewport tabs
-document.querySelectorAll('.tab-btn[data-viewport]').forEach(btn => {
-    btn.addEventListener('click', () => {
-        document.querySelectorAll('.tab-btn[data-viewport]').forEach(b => b.classList.remove('active'));
-        btn.classList.add('active');
-        toggle2DView(btn.dataset.viewport === '2d');
-    });
-});
-
-// Model buttons
-document.querySelectorAll('.model-btn').forEach(btn => {
-    btn.addEventListener('click', async () => {
-        const idx = parseInt(btn.dataset.model);
-        await showModel(idx);
-    });
-});
-
-function updateAutoRotateUI() {
-    document.querySelector('[data-mode="autorotate"]').classList.toggle('active', state.autoRotate);
-    document.getElementById('rotate-speed-row').style.display = state.autoRotate ? 'flex' : 'none';
-    document.getElementById('rotate-speed').value = state.autoRotateSpeed;
-    document.getElementById('rotate-speed-val').textContent = state.autoRotateSpeed.toFixed(1);
-    document.getElementById('rotate-speed').disabled = state.autoDisplay;
-}
-
-function setAutoDisplay(enabled) {
-    state.autoDisplay = enabled;
-    state.autoDisplayElapsed = 0;
-    document.querySelector('[data-mode="autodisplay"]').classList.toggle('active', enabled);
-
-    if (enabled) {
-        state.autoRotate = true;
-        state.autoRotateSpeed = 0.1;
-        updateAutoRotateUI();
-    }
-}
-
-async function showNextAutoDisplayModel() {
-    for (let i = 1; i <= state.models.length; i++) {
-        const nextIndex = (state.currentModelIndex + i) % state.models.length;
-        if (state.modelConfigs[nextIndex]) {
-            await showModel(nextIndex);
-            return;
-        }
-    }
 }
 
 // Sidebar collapse
@@ -3339,16 +1522,6 @@ document.getElementById('sidebar-toggle').addEventListener('click', () => {
     const collapsed = sidebar.classList.toggle('collapsed');
     document.body.classList.toggle('sidebar-collapsed', collapsed);
     toggle.textContent = collapsed ? '▶' : '◀';
-});
-
-// Auto-rotate speed
-document.getElementById('rotate-speed').addEventListener('input', (e) => {
-    if (state.autoDisplay) {
-        e.target.value = state.autoRotateSpeed;
-        return;
-    }
-    state.autoRotateSpeed = parseFloat(e.target.value);
-    document.getElementById('rotate-speed-val').textContent = state.autoRotateSpeed.toFixed(1);
 });
 
 // Help
@@ -3367,90 +1540,14 @@ document.addEventListener('keydown', (e) => {
         return;
     }
 
-    switch (e.key) {
-        case '1': case '2': case '3': case '4': case '5': case '6': case '7': case '8': case '9': {
-            const idx = parseInt(e.key) - 1;
-            if (state.modelConfigs[idx]) showModel(idx);
-            break;
-        }
-        case 'w': case 'W':
-            state.wireframeOverlay = !state.wireframeOverlay;
-            document.querySelector('[data-mode="wireframe"]').classList.toggle('active', state.wireframeOverlay);
-            applyRenderMode();
-            break;
-        case 'n': case 'N':
-            state.vertexNormalsVisible = !state.vertexNormalsVisible;
-            document.querySelector('[data-mode="vertexnormals"]').classList.toggle('active', state.vertexNormalsVisible);
-            applyRenderMode();
-            break;
-        case 'u': case 'U':
-            state.uvCheckerVisible = !state.uvCheckerVisible;
-            document.querySelector('[data-mode="uvchecker"]').classList.toggle('active', state.uvCheckerVisible);
-            applyRenderMode();
-            break;
-        case 'a': case 'A':
-            state.autoRotate = !state.autoRotate;
-            if (!state.autoRotate) setAutoDisplay(false);
-            updateAutoRotateUI();
-            break;
-        case 'd': case 'D':
-            setAutoDisplay(!state.autoDisplay);
-            break;
-        case 'g': case 'G':
-            state.showGrid = !state.showGrid;
-            gridHelper.visible = state.showGrid;
-            document.querySelector('[data-mode="grid"]').classList.toggle('active', state.showGrid);
-            break;
-        case 'b': case 'B':
-            state.darkBackground = !state.darkBackground;
-            document.querySelector('[data-mode="darkbg"]').classList.toggle('active', state.darkBackground);
-            updateViewportBackground();
-            break;
-        case ' ':
-            e.preventDefault();
-            if (state.currentAction) {
-                state.animPlaying = !state.animPlaying;
-                state.currentAction.paused = !state.animPlaying;
-                document.getElementById('anim-play').innerHTML = state.animPlaying ? '&#9646;&#9646;' : '&#9654;';
-            }
-            break;
-        case 'r': case 'R':
-        case 'f': case 'F':
-            if (state.currentModel) fitCamera(state.currentModel, state.modelConfigs[state.currentModelIndex]);
-            break;
+    if (e.key === 'r' || e.key === 'R' || e.key === 'f' || e.key === 'F') {
+        if (state.currentModel) fitCamera(state.currentModel);
     }
 });
 
 // ─── Render loop ───
 function animate() {
     requestAnimationFrame(animate);
-
-    const delta = state.clock.getDelta();
-
-    if (state.mixer && state.animPlaying) {
-        state.mixer.update(delta);
-        if (state.currentAction) {
-            const clip = state.currentAction.getClip();
-            const time = state.currentAction.time % clip.duration;
-            document.getElementById('anim-time').textContent = `${time.toFixed(2)} / ${clip.duration.toFixed(2)}s`;
-            document.getElementById('anim-scrub').value = (time / clip.duration) * 100;
-        }
-    }
-
-    if (state.autoRotate && state.currentModel) {
-        const axis = state.modelConfigs[state.currentModelIndex]?.rotateAxis || 'y';
-        state.currentModel.rotation[axis] += delta * state.autoRotateSpeed;
-    }
-
-    if (state.autoDisplay) {
-        state.autoDisplayElapsed += delta;
-        if (state.autoDisplayElapsed >= state.autoDisplayInterval) {
-            state.autoDisplayElapsed = 0;
-            showNextAutoDisplayModel();
-        }
-    }
-
-    state.normalHelpers.forEach(h => h.update());
     controls.update();
     renderer.render(scene, camera);
 }
@@ -3461,72 +1558,43 @@ function handleResize() {
     camera.aspect = rect.width / rect.height;
     camera.updateProjectionMatrix();
     renderer.setSize(rect.width, rect.height);
-    if (state.show2D) drawUVMap();
 }
 
 window.addEventListener('resize', handleResize);
-setupUVControls();
 setupPaintControls();
 
 // ─── Init ───
 async function init() {
-    showLoading('Loading first model...');
+    showLoading('Loading Cannon...');
 
     if (window.location.protocol === 'file:') {
         document.getElementById('loading-text').textContent = 'Run this through a local server. Do not open index.html directly.';
-        console.error('Preset models cannot be loaded from file://. Start a local HTTP server from the 3dviewer folder.');
+        console.error('The preset model cannot be loaded from file://. Start a local HTTP server from the project folder.');
         animate();
         return;
     }
 
-    state.modelConfigs.forEach((config, index) => {
-        const btn = document.querySelector(`[data-model="${index}"]`);
-        if (btn) btn.textContent = config.label || `Model ${index + 1}`;
-    });
+    try {
+        const url = encodeURI(`${MODEL_CONFIG.path}${MODEL_CONFIG.file}`);
+        const manager = new THREE.LoadingManager();
+        manager.setURLModifier((requestUrl) => redirectFbxTextureUrl(requestUrl, MODEL_CONFIG));
+        const loader = new FBXLoader(manager);
+        const loadedObject = await new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject));
 
-    if (state.modelConfigs.length > 0) {
-        await showModel(0);
-    } else {
-        document.getElementById('loading-text').textContent = 'No preset models found.';
+        const model = setupModel(loadedObject);
+        state.currentModel = model;
+        scene.add(model);
+        resetModelToGrey(model);
+        fitCamera(model);
+    } catch (error) {
+        console.error('Could not load the Cannon model:', error);
+        document.getElementById('loading-text').textContent = 'Could not load the Cannon model.';
         animate();
         return;
     }
 
     hideLoading();
     animate();
-}
-
-function createDemoModels() {
-    const geo1 = new THREE.TorusKnotGeometry(0.8, 0.25, 128, 32);
-    const mat1 = new THREE.MeshStandardMaterial({ color: 0x4488ff, metalness: 0.3, roughness: 0.4 });
-    const mesh1 = new THREE.Mesh(geo1, mat1);
-    const group1 = new THREE.Group();
-    group1.add(mesh1);
-    group1.animations = [];
-    state.modelConfigs[0].file = 'Torus Knot';
-    setupModel(group1, 0);
-
-    const geo2 = new THREE.IcosahedronGeometry(1.2, 3);
-    const mat2 = new THREE.MeshStandardMaterial({ color: 0xff6644, metalness: 0.6, roughness: 0.2 });
-    const mesh2 = new THREE.Mesh(geo2, mat2);
-    const group2 = new THREE.Group();
-    group2.add(mesh2);
-    group2.animations = [];
-    state.modelConfigs[1].file = 'Icosphere';
-    setupModel(group2, 1);
-
-    const geo3 = new THREE.BoxGeometry(1.5, 1.5, 1.5, 4, 4, 4);
-    const mat3 = new THREE.MeshStandardMaterial({ color: 0x44dd88, metalness: 0.1, roughness: 0.7 });
-    const mesh3 = new THREE.Mesh(geo3, mat3);
-    const group3 = new THREE.Group();
-    group3.add(mesh3);
-    group3.animations = [];
-    state.modelConfigs[2].file = 'Cube';
-    setupModel(group3, 2);
-
-    document.querySelector('[data-model="0"]').textContent = 'Torus Knot';
-    document.querySelector('[data-model="1"]').textContent = 'Icosphere';
-    document.querySelector('[data-model="2"]').textContent = 'Cube';
 }
 
 init();

@@ -1,16 +1,16 @@
-# 3D Viewer
+# 3D Painter
 
-Static Three.js model inspector for event presentations.
+A simplified, kid-friendly texture painter built with Three.js. Loads a single 3D model (Cannon) as a plain grey mesh and lets you paint directly on it with a brush, eraser, paint bucket, and color wheel.
 
 ## Local Testing
 
-Before committing and pushing, run the viewer locally from this folder:
+Run the app locally from this folder:
 
 ```text
 serve-local.bat
 ```
 
-It starts a local server and opens:
+(or `.claude/serve.ps1` if you don't have Python installed). It starts a local server; open:
 
 ```text
 http://127.0.0.1:3000/
@@ -28,26 +28,35 @@ This project can run directly from GitHub Pages. After committing and pushing:
 4. Select the `main` branch and `/ (root)` folder.
 5. Save.
 
-The site will be available at:
+## Model
+
+The app loads a single FBX model from the repository:
 
 ```text
-https://gabrielpradovieira.github.io/3dviewer/
+models/model7/cannon_lp.fbx
 ```
 
-## Preset Models
+Keep the file in this path, or update `MODEL_CONFIG` in `index.html`.
 
-The viewer loads these FBX files from the repository:
+## Features
 
-```text
-models/model1/Hammer.fbx
-models/model2/Blade.fbx
-models/model3/Cargo_Transporter.fbx
-```
+- **Brush** / **Eraser** with three hardness levels (hard, mid, soft)
+- **Paint Bucket** with Full Object / Face / UV Shell fill modes
+- **Color Wheel** (hue ring + saturation/value triangle) and **Color Picker** (eyedropper)
+- **Undo** (Ctrl+Z), up to 10 steps
+- Backface-aware painting (strokes never bleed through to hidden surfaces)
 
-Keep the files in these paths, or update the `modelConfigs` list in `index.html`.
+## Controls
+
+- **LMB** / touch: paint
+- **RMB**: orbit
+- **MMB**: pan
+- **Scroll** / pinch: zoom
+- **Ctrl+Z**: undo
+- **R**: reset camera
 
 ## Notes
 
 - Do not open `index.html` directly with `file://`; browsers block model loading that way.
 - GitHub Pages or any static web host is enough.
-- The FBX files are served as-is. The app does not compress, convert, or re-export them.
+- The FBX file is served as-is; the app does not compress, convert, or re-export it.
