@@ -23,6 +23,32 @@
 
         canvas { display: block; touch-action: none; }
 
+        /* ── Quick guide ── */
+        #quick-guide {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(255, 255, 255, 0.88);
+            backdrop-filter: blur(8px);
+            border: 1px solid rgba(0,0,0,0.1);
+            border-radius: 10px;
+            padding: 12px 16px;
+            font-size: 13px;
+            line-height: 1.8;
+            color: #444;
+            z-index: 100;
+            max-width: 230px;
+        }
+
+        #quick-guide .quick-guide-title {
+            font-size: 12px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #888;
+            margin-bottom: 4px;
+        }
+
         /* ── Sidebar ── */
         #sidebar {
             position: absolute;
@@ -146,6 +172,26 @@
             flex-shrink: 0;
         }
 
+        /* ── Material drag-and-drop ── */
+        .sidebar-item[data-material] { cursor: grab; }
+
+        #material-drag-ghost {
+            position: fixed;
+            top: 0; left: 0;
+            width: 34px; height: 34px;
+            margin: -17px 0 0 -17px;
+            border-radius: 50%;
+            border: 3px solid #fff;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.4);
+            pointer-events: none;
+            z-index: 500;
+        }
+
+        body.dragging-material,
+        body.dragging-material * {
+            cursor: grabbing !important;
+        }
+
         .hardness-row {
             display: flex;
             gap: 10px;
@@ -245,9 +291,41 @@
         body.sidebar-collapsed #sidebar-toggle { left: 0; }
         body.sidebar-collapsed #help-btn { left: 48px; }
         body.sidebar-collapsed #help-tooltip { left: 48px; }
+        body.sidebar-collapsed #model-bar { left: 48px; }
 
-        #help-btn, #help-tooltip {
+        #help-btn, #help-tooltip, #model-bar {
             transition: left 0.25s ease;
+        }
+
+        /* ── Model switcher ── */
+        #model-bar {
+            position: absolute;
+            top: 12px;
+            left: 260px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            z-index: 100;
+        }
+
+        .model-btn {
+            padding: 8px 18px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            cursor: pointer;
+            border: 1px solid rgba(0,0,0,0.12);
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(8px);
+            color: #444;
+            transition: all 0.2s;
+        }
+
+        .model-btn:hover { background: rgba(59, 130, 246, 0.15); border-color: rgba(59,130,246,0.3); color: #222; }
+        .model-btn.active {
+            background: rgba(59, 130, 246, 0.9);
+            border-color: #3b82f6;
+            color: #fff;
         }
 
         /* ── Loading overlay ── */
@@ -330,8 +408,11 @@
             #sidebar-toggle { left: 200px; }
             #help-btn { left: 240px; }
             #help-tooltip { left: 240px; }
+            #model-bar { left: 240px; top: 8px; gap: 4px; }
+            .model-btn { padding: 6px 12px; font-size: 11px; }
             body.sidebar-collapsed #help-btn { left: 40px; }
             body.sidebar-collapsed #help-tooltip { left: 40px; }
+            body.sidebar-collapsed #model-bar { left: 40px; }
         }
 
         @media (max-width: 480px) {
@@ -339,12 +420,33 @@
             #sidebar-toggle { left: 180px; }
             #help-btn { left: 220px; }
             #help-tooltip { left: 220px; }
+            #model-bar { left: 220px; }
+            #quick-guide { font-size: 11px; max-width: 160px; padding: 8px 10px; }
         }
     </style>
 </head>
 <body>
 
 <div id="canvas-container"></div>
+
+<!-- Quick guide -->
+<div id="quick-guide">
+    <div class="quick-guide-title">Quick Guide</div>
+    <div>🖌️ Left-click drag: paint</div>
+    <div>🔄 Right-click drag: look around</div>
+    <div>✋ Middle-click drag: move view</div>
+    <div>🔍 Scroll: zoom</div>
+    <div>↩️ Ctrl+Z: undo</div>
+</div>
+
+<!-- Model switcher -->
+<div id="model-bar">
+    <button class="model-btn active" data-model-id="cannon">Cannon</button>
+    <button class="model-btn" data-model-id="marioscene">Mario Scene</button>
+    <button class="model-btn" data-model-id="dog">Dog</button>
+    <button class="model-btn" data-model-id="dragon">Dragon</button>
+    <button class="model-btn" data-model-id="medieval">Medieval</button>
+</div>
 
 <!-- Sidebar toggle -->
 <button id="sidebar-toggle" title="Collapse/Expand">◀</button>
@@ -444,6 +546,31 @@
         <div id="color-swatch-current"></div>
         <span id="color-hex-label">#FF2D2D</span>
     </div>
+
+    <div class="divider"></div>
+
+    <div class="section-label">Material</div>
+    <div class="sidebar-item" data-material="plastic">
+        <svg class="tool-icon" viewBox="0 0 24 24">
+            <defs><radialGradient id="plasticGrad" cx="35%" cy="30%"><stop offset="0%" stop-color="#bcd6ff"/><stop offset="45%" stop-color="#2255ee"/><stop offset="100%" stop-color="#0f2f99"/></radialGradient></defs>
+            <circle cx="12" cy="12" r="9" fill="url(#plasticGrad)"/>
+        </svg>
+        <span>Plastic</span>
+    </div>
+    <div class="sidebar-item" data-material="metal">
+        <svg class="tool-icon" viewBox="0 0 24 24">
+            <defs><linearGradient id="metalGrad" x1="0%" y1="0%" x2="100%" y2="100%"><stop offset="0%" stop-color="#f7f7f7"/><stop offset="35%" stop-color="#9a9a9a"/><stop offset="55%" stop-color="#eaeaea"/><stop offset="100%" stop-color="#707070"/></linearGradient></defs>
+            <circle cx="12" cy="12" r="9" fill="url(#metalGrad)"/>
+        </svg>
+        <span>Metal</span>
+    </div>
+    <div class="sidebar-item" data-material="glass">
+        <svg class="tool-icon" viewBox="0 0 24 24">
+            <circle cx="12" cy="12" r="9" fill="rgba(180,220,255,0.2)" stroke="rgba(255,255,255,0.95)" stroke-width="1.5"/>
+            <circle cx="9" cy="9" r="2" fill="rgba(255,255,255,0.85)"/>
+        </svg>
+        <span>Glass</span>
+    </div>
 </div>
 
 <!-- Loading -->
@@ -479,6 +606,9 @@
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { FBXLoader } from 'local/FBXLoader.js';
+import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 
 // ─── Scene setup ───
 const container = document.getElementById('canvas-container');
@@ -492,8 +622,29 @@ renderer.toneMappingExposure = 1.2;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 container.appendChild(renderer.domElement);
 
+// Photoshop-style "aim" cursor (ring + crosshair) while hovering the 3D view.
+const AIM_CURSOR_SVG = `<svg xmlns='http://www.w3.org/2000/svg' width='28' height='28' viewBox='0 0 28 28'>
+    <circle cx='14' cy='14' r='9' fill='none' stroke='white' stroke-width='3'/>
+    <circle cx='14' cy='14' r='9' fill='none' stroke='black' stroke-width='1.4'/>
+    <line x1='14' y1='1' x2='14' y2='6' stroke='white' stroke-width='3'/>
+    <line x1='14' y1='1' x2='14' y2='6' stroke='black' stroke-width='1.4'/>
+    <line x1='14' y1='22' x2='14' y2='27' stroke='white' stroke-width='3'/>
+    <line x1='14' y1='22' x2='14' y2='27' stroke='black' stroke-width='1.4'/>
+    <line x1='1' y1='14' x2='6' y2='14' stroke='white' stroke-width='3'/>
+    <line x1='1' y1='14' x2='6' y2='14' stroke='black' stroke-width='1.4'/>
+    <line x1='22' y1='14' x2='27' y2='14' stroke='white' stroke-width='3'/>
+    <line x1='22' y1='14' x2='27' y2='14' stroke='black' stroke-width='1.4'/>
+    <circle cx='14' cy='14' r='1.3' fill='black'/>
+</svg>`;
+renderer.domElement.style.cursor = `url("data:image/svg+xml,${encodeURIComponent(AIM_CURSOR_SVG)}") 14 14, crosshair`;
+
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xd0d0d0);
+
+// A simple procedural studio environment (no HDRI file needed) so metal/glass/clearcoat
+// materials have something plausible to reflect — without it, metal reads as near-black.
+const pmremGenerator = new THREE.PMREMGenerator(renderer);
+scene.environment = pmremGenerator.fromScene(new RoomEnvironment(), 0.04).texture;
 
 const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.01, 1000);
 camera.position.set(3, 2, 3);
@@ -537,23 +688,69 @@ scene.add(hemiLight);
 const gridHelper = new THREE.GridHelper(10, 20, 0x999999, 0xbbbbbb);
 scene.add(gridHelper);
 
-// ─── Model config ───
-const MODEL_CONFIG = {
-    path: 'models/model7/',
-    file: 'cannon_lp.fbx',
-    label: 'Cannon',
-    standardizeMaterials: true,
-    textureDir: 'images_web/',
-    textureFlipY: true,
-    materialAdjust: { exposure: 1.2, saturation: 0.82, roughnessMin: 0.9, metalnessMax: 0.15, emissiveBoost: 0.08 },
-    textureRules: [
-        { slot: 0, match: /Phong|cannon|Material/i, map: 'Cannon_BC.webp', normalMap: 'Cannon_NM.webp', roughnessMap: 'Cannon_R.webp', metalnessMap: 'Cannon_M.webp', aoMap: 'Cannon_AO.webp' }
-    ]
-};
+// ─── Model configs ───
+const MODEL_CONFIGS = [
+    {
+        id: 'cannon',
+        label: 'Cannon',
+        format: 'fbx',
+        path: 'models/model7/',
+        file: 'cannon_lp.fbx',
+        standardizeMaterials: true,
+        textureDir: 'images_web/',
+        textureFlipY: true,
+        materialAdjust: { exposure: 1.2, saturation: 0.82, roughnessMin: 0.9, metalnessMax: 0.15, emissiveBoost: 0.08 },
+        textureRules: [
+            { slot: 0, match: /Phong|cannon|Material/i, map: 'Cannon_BC.webp', normalMap: 'Cannon_NM.webp', roughnessMap: 'Cannon_R.webp', metalnessMap: 'Cannon_M.webp', aoMap: 'Cannon_AO.webp' }
+        ]
+    },
+    {
+        id: 'marioscene',
+        label: 'Mario Scene',
+        format: 'obj',
+        path: 'models/MarioScene/',
+        file: 'marioscene.obj',
+        mtlFile: 'marioscene.mtl',
+        standardizeMaterials: true,
+        cameraDistanceScale: 0.62
+    },
+    {
+        id: 'dog',
+        label: 'Dog',
+        format: 'fbx',
+        path: 'models/Dog/',
+        file: '1.FBX',
+        standardizeMaterials: true
+    },
+    {
+        id: 'dragon',
+        label: 'Dragon',
+        format: 'fbx',
+        path: 'models/Dragon/',
+        file: 'DragonMain.fbx',
+        standardizeMaterials: true,
+        cameraDistanceScale: 0.45
+    },
+    {
+        id: 'medieval',
+        label: 'Medieval',
+        format: 'fbx',
+        path: 'models/Medieval/',
+        file: 'TotalSceneSketch_01.fbx',
+        standardizeMaterials: true
+    }
+];
+
+function getModelConfig(id) {
+    return MODEL_CONFIGS.find((c) => c.id === id);
+}
 
 // ─── State ───
 const state = {
     currentModel: null,
+    currentModelId: null,
+    models: {},
+    loadingPromises: {},
     paintTool: 'brush',
     bucketMode: 'full',
     brushSize: 40,
@@ -730,10 +927,12 @@ function applyMaterialAdjustments(material, config) {
     return material;
 }
 
+// MeshPhysicalMaterial (a superset of MeshStandardMaterial) so the Material Select presets
+// below can use clearcoat (plastic) and transmission (glass) without swapping material types.
 function createDisplayMaterial(sourceMaterial, config) {
     if (!config.standardizeMaterials) return sourceMaterial.clone();
 
-    const material = new THREE.MeshStandardMaterial({
+    const material = new THREE.MeshPhysicalMaterial({
         name: sourceMaterial.name,
         color: sourceMaterial.color?.clone?.() || new THREE.Color(0xd6d6d2),
         roughness: sourceMaterial.roughness ?? 0.62,
@@ -813,7 +1012,37 @@ function getSafeBoxFromObject(root) {
     return result;
 }
 
-function setupModel(loadedObject) {
+function loadModelObject(config) {
+    return new Promise((resolve, reject) => {
+        const url = encodeURI(`${config.path}${config.file}`);
+        if (config.format === 'fbx') {
+            const manager = new THREE.LoadingManager();
+            manager.setURLModifier((requestUrl) => redirectFbxTextureUrl(requestUrl, config));
+            const loader = new FBXLoader(manager);
+            loader.load(url, resolve, undefined, reject);
+        } else if (config.format === 'obj') {
+            const finishWithObjLoader = (materials) => {
+                const loader = new OBJLoader();
+                if (materials) loader.setMaterials(materials);
+                loader.load(url, resolve, undefined, reject);
+            };
+            if (config.mtlFile) {
+                const mtlLoader = new MTLLoader();
+                mtlLoader.setPath(config.path);
+                mtlLoader.load(config.mtlFile, (materials) => {
+                    materials.preload();
+                    finishWithObjLoader(materials);
+                }, undefined, () => finishWithObjLoader(null));
+            } else {
+                finishWithObjLoader(null);
+            }
+        } else {
+            reject(new Error(`Unsupported model format: ${config.format}`));
+        }
+    });
+}
+
+function setupModel(loadedObject, config) {
     removeInvalidGeometryMeshes(loadedObject);
     loadedObject.updateMatrixWorld(true);
     const box = getSafeBoxFromObject(loadedObject);
@@ -823,7 +1052,7 @@ function setupModel(loadedObject) {
     const scale = maxDim > 0 ? 3 / maxDim : 1;
 
     const object = new THREE.Group();
-    object.name = MODEL_CONFIG.label;
+    object.name = config.label;
     object.add(loadedObject);
 
     loadedObject.scale.multiplyScalar(scale);
@@ -845,24 +1074,26 @@ function setupModel(loadedObject) {
             ? (Array.isArray(child.material) ? child.material : [child.material])
             : [standardGreyMaterial];
         sourceMaterials.forEach((m, materialIndex) => {
-            applyConfiguredTextures(m, MODEL_CONFIG, materialIndex);
-            applyMaterialAdjustments(m, MODEL_CONFIG);
+            applyConfiguredTextures(m, config, materialIndex);
+            applyMaterialAdjustments(m, config);
             if (m.map) m.map.colorSpace = THREE.SRGBColorSpace;
         });
 
         const displayMaterials = sourceMaterials.map((m, materialIndex) => {
-            const clone = createDisplayMaterial(m, MODEL_CONFIG);
-            applyConfiguredTextures(clone, MODEL_CONFIG, materialIndex);
-            applyMaterialAdjustments(clone, MODEL_CONFIG);
+            const clone = createDisplayMaterial(m, config);
+            applyConfiguredTextures(clone, config, materialIndex);
+            applyMaterialAdjustments(clone, config);
             return clone;
         });
         child.material = Array.isArray(child.material) ? displayMaterials : displayMaterials[0];
+
+        ensureNonOverlappingPaintUVs(child);
     });
 
     return object;
 }
 
-function fitCamera(object) {
+function fitCamera(object, config = {}) {
     object.updateMatrixWorld(true);
     const box = getSafeBoxFromObject(object);
     if (box.isEmpty()) return;
@@ -872,7 +1103,7 @@ function fitCamera(object) {
     const radius = size.length() * 0.5;
     const fov = THREE.MathUtils.degToRad(camera.fov);
     const fitHeightDistance = radius / Math.sin(fov / 2);
-    const dist = Math.max(fitHeightDistance * 0.92, maxDim * 1.08);
+    const dist = Math.max(fitHeightDistance * 0.92, maxDim * 1.08) * (config.cameraDistanceScale || 1);
 
     controls.target.copy(center);
     camera.position.set(center.x + dist * 0.58, center.y + dist * 0.34, center.z + dist * 0.58);
@@ -948,7 +1179,12 @@ function getPaintTargetMaterial(mesh, materialIndex) {
 
 // Note: FBXLoader can in principle reuse one material object across several mesh
 // nodes. Painting such a material paints every mesh that uses it.
-function getOrCreatePaintCanvas(material) {
+//
+// hasUV1: when the mesh's geometry has a remapped second UV set (see
+// ensureNonOverlappingPaintUVs), the paint texture must sample from it instead of the
+// original "uv" channel, so painting stays isolated per geometric island while leaving
+// normal/roughness/metalness/AO maps sampling correctly from the original UVs.
+function getOrCreatePaintCanvas(material, hasUV1) {
     let data = state.paintData.get(material);
     if (data) return data;
 
@@ -956,7 +1192,9 @@ function getOrCreatePaintCanvas(material) {
     const canvas = document.createElement('canvas');
     canvas.width = size; canvas.height = size;
     const ctx = canvas.getContext('2d');
-    ctx.fillStyle = PAINT_BASE_GREY;
+    // Seed with the material's current flat color (e.g. a just-applied material preset)
+    // rather than always grey, so starting to paint doesn't jarringly reset the piece's look.
+    ctx.fillStyle = material.color ? `#${material.color.getHexString()}` : PAINT_BASE_GREY;
     ctx.fillRect(0, 0, size, size);
 
     const baseCanvas = document.createElement('canvas');
@@ -965,6 +1203,7 @@ function getOrCreatePaintCanvas(material) {
 
     const texture = new THREE.CanvasTexture(canvas);
     texture.colorSpace = THREE.SRGBColorSpace;
+    if (hasUV1) texture.channel = 1;
     texture.needsUpdate = true;
 
     material.map = texture;
@@ -989,7 +1228,9 @@ function stampAt(data, x, y, radius, color, erase) {
 const BRUSH_HARDNESS_STOPS = {
     hard: [[0, 1], [0.65, 1], [1, 0]],
     mid: [[0, 1], [0.35, 1], [1, 0]],
-    soft: [[0, 0.85], [0.08, 0.7], [1, 0]]
+    // Very low, gradual opacity across the whole radius — a light dusting that
+    // only builds up to full color with several overlapping passes, like a real airbrush.
+    soft: [[0, 0.1], [0.25, 0.07], [0.55, 0.03], [1, 0]]
 };
 
 function stampBrush(data, x, y, radius, color) {
@@ -1050,11 +1291,13 @@ function drawUVTriangle(ctx, uv, a, b, c, size) {
     ctx.fill();
 }
 
-function getUVShellGroups(geometry, materialIndex) {
-    geometry.userData.uvShells = geometry.userData.uvShells || {};
-    if (geometry.userData.uvShells[materialIndex]) return geometry.userData.uvShells[materialIndex];
+// Shared union-find over a geometry's triangles: two triangles (of the same material
+// slot) are merged whenever they share an edge whose two endpoints produce equal keys
+// under keyFn. Used both for UV-space shells and for real 3D geometric connectivity.
+function buildTriangleIslands(geometry, materialIndex, cacheField, keyFn) {
+    geometry.userData[cacheField] = geometry.userData[cacheField] || {};
+    if (geometry.userData[cacheField][materialIndex]) return geometry.userData[cacheField][materialIndex];
 
-    const uv = geometry.attributes.uv;
     const index = geometry.index;
     const triCount = index ? index.count / 3 : geometry.attributes.position.count / 3;
     const getVertex = (tri, corner) => index ? index.getX(tri * 3 + corner) : tri * 3 + corner;
@@ -1069,8 +1312,6 @@ function getUVShellGroups(geometry, materialIndex) {
         return 0;
     };
 
-    const uvKey = (i) => `${Math.round(uv.getX(i) * 100000)}_${Math.round(uv.getY(i) * 100000)}`;
-
     const parent = new Int32Array(triCount);
     for (let i = 0; i < triCount; i++) parent[i] = i;
     function find(x) { while (parent[x] !== x) { parent[x] = parent[parent[x]]; x = parent[x]; } return x; }
@@ -1084,7 +1325,7 @@ function getUVShellGroups(geometry, materialIndex) {
         faces[t] = [a, b, c];
         if (materialIndexOfTri(t) !== materialIndex) continue;
 
-        const keys = [uvKey(a), uvKey(b), uvKey(c)];
+        const keys = [keyFn(a), keyFn(b), keyFn(c)];
         for (const [i, j] of [[0, 1], [1, 2], [2, 0]]) {
             const edgeKey = keys[i] < keys[j] ? `${keys[i]}|${keys[j]}` : `${keys[j]}|${keys[i]}`;
             if (edgeMap.has(edgeKey)) union(t, edgeMap.get(edgeKey));
@@ -1092,17 +1333,105 @@ function getUVShellGroups(geometry, materialIndex) {
         }
     }
 
-    const shells = new Map();
+    const islands = new Map();
     for (let t = 0; t < triCount; t++) {
         if (materialIndexOfTri(t) !== materialIndex) continue;
         const root = find(t);
-        if (!shells.has(root)) shells.set(root, []);
-        shells.get(root).push(t);
+        if (!islands.has(root)) islands.set(root, []);
+        islands.get(root).push(t);
     }
 
-    const result = { faces, find, shells };
-    geometry.userData.uvShells[materialIndex] = result;
+    const result = { faces, find, islands };
+    geometry.userData[cacheField][materialIndex] = result;
     return result;
+}
+
+function getUVShellGroups(geometry, materialIndex) {
+    const uv = geometry.attributes.uv1 || geometry.attributes.uv;
+    return buildTriangleIslands(geometry, materialIndex, 'uvShells', (i) =>
+        `${Math.round(uv.getX(i) * 100000)}_${Math.round(uv.getY(i) * 100000)}`);
+}
+
+// Groups triangles by real 3D connectivity (shared edges in mesh space), independent of
+// UV layout or material. This is what "Full Object" bucket fill uses, so a piece that's
+// geometrically separate from its neighbors (e.g. one button among many on a jacket) only
+// gets filled by itself, even when it shares a material/UV space with the others.
+function getGeometryIslandGroups(geometry, materialIndex) {
+    const index = geometry.index;
+    const pos = geometry.attributes.position;
+    const keyFn = index
+        ? (i) => String(i)
+        : (i) => `${Math.round(pos.getX(i) * 10000)}_${Math.round(pos.getY(i) * 10000)}_${Math.round(pos.getZ(i) * 10000)}`;
+    return buildTriangleIslands(geometry, materialIndex, 'geoIslands', keyFn);
+}
+
+// Many models reuse/tile the same UV space across repeated, geometrically separate parts
+// (rivets, trees, etc.) to save texture resolution. With shared UV space, painting one part
+// paints every other part that happens to sample those same pixels — which is exactly the
+// "random strokes everywhere" bug this fixes.
+//
+// This writes a SECOND UV set ("uv1") used exclusively by our paint canvas texture (see
+// getOrCreatePaintCanvas, which sets texture.channel = 1 whenever uv1 exists). The original
+// "uv" attribute is left completely untouched, so normal/roughness/metalness/AO maps —
+// which were authored against the model's real UV layout — keep sampling correctly. Each
+// disconnected geometric island (across all material slots) gets its own exclusive, padded
+// region of uv1 space, preserving each island's original relative UV shape within its cell.
+function ensureNonOverlappingPaintUVs(mesh) {
+    const geometry = mesh.geometry;
+    if (!geometry.attributes.uv || geometry.userData.paintUVsRemapped) return;
+    geometry.userData.paintUVsRemapped = true;
+
+    const materialCount = Array.isArray(mesh.material) ? mesh.material.length : 1;
+    const islandVertexSets = [];
+    for (let materialIndex = 0; materialIndex < materialCount; materialIndex++) {
+        const groups = getGeometryIslandGroups(geometry, materialIndex);
+        groups.islands.forEach((triList) => {
+            const verts = new Set();
+            triList.forEach((t) => {
+                const [a, b, c] = groups.faces[t];
+                verts.add(a); verts.add(b); verts.add(c);
+            });
+            islandVertexSets.push(verts);
+        });
+    }
+    if (islandVertexSets.length <= 1) return;
+
+    const srcUV = geometry.attributes.uv;
+    const newArray = srcUV.array.slice();
+
+    const cols = Math.ceil(Math.sqrt(islandVertexSets.length));
+    const rows = Math.ceil(islandVertexSets.length / cols);
+    const cellW = 1 / cols, cellH = 1 / rows;
+    const pad = 0.1;
+
+    islandVertexSets.forEach((verts, islandIndex) => {
+        let minU = Infinity, maxU = -Infinity, minV = Infinity, maxV = -Infinity;
+        verts.forEach((v) => {
+            const u = srcUV.getX(v), vv = srcUV.getY(v);
+            if (u < minU) minU = u;
+            if (u > maxU) maxU = u;
+            if (vv < minV) minV = vv;
+            if (vv > maxV) maxV = vv;
+        });
+        const spanU = (maxU - minU) || 1;
+        const spanV = (maxV - minV) || 1;
+
+        const col = islandIndex % cols;
+        const row = Math.floor(islandIndex / cols);
+        const innerW = cellW * (1 - 2 * pad);
+        const innerH = cellH * (1 - 2 * pad);
+        const offX = col * cellW + cellW * pad;
+        const offY = row * cellH + cellH * pad;
+
+        verts.forEach((v) => {
+            const nu = (srcUV.getX(v) - minU) / spanU;
+            const nv = (srcUV.getY(v) - minV) / spanV;
+            newArray[v * 2] = offX + nu * innerW;
+            newArray[v * 2 + 1] = offY + nv * innerH;
+        });
+    });
+
+    geometry.setAttribute('uv1', new THREE.BufferAttribute(newArray, 2));
 }
 
 // Undo history: one snapshot per brush stroke / bucket fill, capped so memory stays bounded.
@@ -1131,23 +1460,29 @@ function bucketFill(hit) {
     const materialIndex = hit.face?.materialIndex || 0;
     const material = getPaintTargetMaterial(mesh, materialIndex);
     if (!material) return;
-    const data = getOrCreatePaintCanvas(material);
+    const hasUV1 = !!mesh.geometry.attributes.uv1;
+    const data = getOrCreatePaintCanvas(material, hasUV1);
     pushPaintUndoSnapshot(material);
 
     const ctx = data.ctx;
     ctx.fillStyle = state.paintColor;
+    const uv = mesh.geometry.attributes.uv1 || mesh.geometry.attributes.uv;
 
     if (state.bucketMode === 'full') {
-        ctx.fillRect(0, 0, data.size, data.size);
+        const groups = getGeometryIslandGroups(mesh.geometry, materialIndex);
+        const root = groups.find(hit.faceIndex);
+        const islandFaces = groups.islands.get(root) || [];
+        islandFaces.forEach((t) => {
+            const [a, b, c] = groups.faces[t];
+            drawUVTriangle(ctx, uv, a, b, c, data.size);
+        });
     } else if (state.bucketMode === 'face') {
-        const uv = mesh.geometry.attributes.uv;
         const face = hit.face;
         drawUVTriangle(ctx, uv, face.a, face.b, face.c, data.size);
     } else if (state.bucketMode === 'shell') {
         const groups = getUVShellGroups(mesh.geometry, materialIndex);
         const root = groups.find(hit.faceIndex);
-        const shellFaces = groups.shells.get(root) || [];
-        const uv = mesh.geometry.attributes.uv;
+        const shellFaces = groups.islands.get(root) || [];
         shellFaces.forEach((t) => {
             const [a, b, c] = groups.faces[t];
             drawUVTriangle(ctx, uv, a, b, c, data.size);
@@ -1162,10 +1497,12 @@ function applyPaintStroke(hit, isStart) {
     const materialIndex = hit.face?.materialIndex || 0;
     const material = getPaintTargetMaterial(mesh, materialIndex);
     if (!material) return;
-    const data = getOrCreatePaintCanvas(material);
+    const hasUV1 = !!mesh.geometry.attributes.uv1;
+    const data = getOrCreatePaintCanvas(material, hasUV1);
+    const paintUV = hit.uv1 || hit.uv;
 
-    const x = hit.uv.x * data.size;
-    const y = (1 - hit.uv.y) * data.size;
+    const x = paintUV.x * data.size;
+    const y = (1 - paintUV.y) * data.size;
     const radius = state.brushSize / 2;
     const erase = state.paintTool === 'eraser';
 
@@ -1184,10 +1521,12 @@ function pickColorAt(hit) {
     const materialIndex = hit.face?.materialIndex || 0;
     const material = getPaintTargetMaterial(mesh, materialIndex);
     if (!material) return;
-    const data = getOrCreatePaintCanvas(material);
+    const hasUV1 = !!mesh.geometry.attributes.uv1;
+    const data = getOrCreatePaintCanvas(material, hasUV1);
+    const paintUV = hit.uv1 || hit.uv;
 
-    const px = Math.min(data.size - 1, Math.max(0, Math.floor(hit.uv.x * data.size)));
-    const py = Math.min(data.size - 1, Math.max(0, Math.floor((1 - hit.uv.y) * data.size)));
+    const px = Math.min(data.size - 1, Math.max(0, Math.floor(paintUV.x * data.size)));
+    const py = Math.min(data.size - 1, Math.max(0, Math.floor((1 - paintUV.y) * data.size)));
     const [r, g, b] = data.ctx.getImageData(px, py, 1, 1).data;
     setPaintColor(rgbToHex(r, g, b));
 }
@@ -1417,6 +1756,154 @@ function setBrushHardness(mode) {
     });
 }
 
+// Drag-and-drop material "skins" — dropped onto one specific geometric piece at a time,
+// not the whole model. All three read as fully glossy (roughness 0 = 100% glossiness).
+// Only ever touches color/metalness/roughness/clearcoat/transmission — never .map, so
+// painting (brush/eraser/bucket/picker) on a piece afterward still only affects base color.
+const MATERIAL_PRESETS = {
+    plastic: { color: 0x2255ee, metalness: 0, roughness: 0, clearcoat: 1, clearcoatRoughness: 0, transmission: 0, transparent: false, opacity: 1 },
+    metal: { color: 0xd6d6d6, metalness: 1, roughness: 0, clearcoat: 0, clearcoatRoughness: 0, transmission: 0, transparent: false, opacity: 1 },
+    glass: { color: 0xffffff, metalness: 0, roughness: 0, clearcoat: 0, clearcoatRoughness: 0, transmission: 1, transparent: true, opacity: 1, ior: 1.5, thickness: 0.6 }
+};
+
+function applyPresetToMaterial(m, preset) {
+    m.map = null;
+    m.color?.set(preset.color);
+    m.metalness = preset.metalness;
+    m.roughness = preset.roughness;
+    if ('clearcoat' in m) m.clearcoat = preset.clearcoat;
+    if ('clearcoatRoughness' in m) m.clearcoatRoughness = preset.clearcoatRoughness;
+    if ('transmission' in m) m.transmission = preset.transmission;
+    if ('ior' in m && preset.ior !== undefined) m.ior = preset.ior;
+    if ('thickness' in m && preset.thickness !== undefined) m.thickness = preset.thickness;
+    m.transparent = preset.transparent;
+    m.opacity = preset.opacity;
+    m.needsUpdate = true;
+}
+
+// If the dropped-on triangle's material slot is already used exclusively by the one
+// geometric piece it belongs to, no work is needed — just mutate that material directly.
+// Otherwise (e.g. several buttons on a jacket sharing one "button" material slot), this
+// physically carves the target piece's triangles out into their own new material slot —
+// a fresh clone of the shared material — so tweaking it never affects sibling pieces.
+// Safe because it only reorders the index buffer / rebuilds groups; vertex data (including
+// the uv1 paint layout) is untouched, so painting isolation keeps working afterward too.
+function getOrSplitIslandMaterialIndex(mesh, materialIndex, faceIndex) {
+    const geometry = mesh.geometry;
+    if (!geometry.index) return materialIndex;
+
+    const groups = getGeometryIslandGroups(geometry, materialIndex);
+    if (groups.islands.size <= 1) return materialIndex;
+
+    const root = groups.find(faceIndex);
+    const islandTris = new Set(groups.islands.get(root) || []);
+
+    const oldIndex = geometry.index.array;
+    const triCount = oldIndex.length / 3;
+    const geomGroups = geometry.groups && geometry.groups.length ? geometry.groups : [{ start: 0, count: oldIndex.length, materialIndex: 0 }];
+    const triMaterialIndex = new Array(triCount);
+    geomGroups.forEach((g) => {
+        const startTri = g.start / 3, endTri = (g.start + g.count) / 3;
+        for (let t = startTri; t < endTri; t++) triMaterialIndex[t] = g.materialIndex ?? 0;
+    });
+
+    const keepIndices = [];
+    const islandIndices = [];
+    for (let t = 0; t < triCount; t++) {
+        const base = t * 3;
+        if (islandTris.has(t)) {
+            islandIndices.push(oldIndex[base], oldIndex[base + 1], oldIndex[base + 2]);
+        } else {
+            keepIndices.push(oldIndex[base], oldIndex[base + 1], oldIndex[base + 2]);
+        }
+    }
+
+    const newGroups = [];
+    let cursor = 0, runStart = 0, runMat = null;
+    for (let t = 0; t < triCount; t++) {
+        if (islandTris.has(t)) continue;
+        const mIdx = triMaterialIndex[t];
+        if (runMat === null) { runMat = mIdx; runStart = cursor; }
+        else if (mIdx !== runMat) {
+            newGroups.push({ start: runStart * 3, count: (cursor - runStart) * 3, materialIndex: runMat });
+            runStart = cursor; runMat = mIdx;
+        }
+        cursor++;
+    }
+    if (runMat !== null) newGroups.push({ start: runStart * 3, count: (cursor - runStart) * 3, materialIndex: runMat });
+
+    if (!Array.isArray(mesh.material)) mesh.material = [mesh.material];
+    const newMaterialIndex = mesh.material.length;
+    mesh.material.push(mesh.material[materialIndex].clone());
+    newGroups.push({ start: keepIndices.length, count: islandIndices.length, materialIndex: newMaterialIndex });
+
+    geometry.setIndex(keepIndices.concat(islandIndices));
+    geometry.clearGroups();
+    newGroups.forEach((g) => geometry.addGroup(g.start, g.count, g.materialIndex));
+
+    // Triangle numbering shifted — invalidate the connectivity caches keyed by it.
+    geometry.userData.geoIslands = {};
+    geometry.userData.uvShells = {};
+
+    return newMaterialIndex;
+}
+
+function applyMaterialToPiece(hit, name) {
+    const preset = MATERIAL_PRESETS[name];
+    if (!preset) return;
+    const mesh = hit.object;
+    const materialIndex = hit.face?.materialIndex || 0;
+    const targetIndex = getOrSplitIslandMaterialIndex(mesh, materialIndex, hit.faceIndex);
+    const material = Array.isArray(mesh.material) ? mesh.material[targetIndex] : mesh.material;
+    applyPresetToMaterial(material, preset);
+}
+
+// Click-and-drag a material swatch from the sidebar onto the model to apply it to
+// whichever piece is under the cursor on release.
+let materialDragState = null;
+
+function startMaterialDrag(name, e) {
+    const ghost = document.createElement('div');
+    ghost.id = 'material-drag-ghost';
+    ghost.style.background = `#${new THREE.Color(MATERIAL_PRESETS[name].color).getHexString()}`;
+    document.body.appendChild(ghost);
+    materialDragState = { name, ghostEl: ghost };
+    document.body.classList.add('dragging-material');
+    positionMaterialGhost(e.clientX, e.clientY);
+
+    window.addEventListener('pointermove', onMaterialDragMove);
+    window.addEventListener('pointerup', onMaterialDragEnd);
+}
+
+function positionMaterialGhost(x, y) {
+    if (!materialDragState) return;
+    materialDragState.ghostEl.style.left = `${x}px`;
+    materialDragState.ghostEl.style.top = `${y}px`;
+}
+
+function onMaterialDragMove(e) {
+    positionMaterialGhost(e.clientX, e.clientY);
+}
+
+function onMaterialDragEnd(e) {
+    window.removeEventListener('pointermove', onMaterialDragMove);
+    window.removeEventListener('pointerup', onMaterialDragEnd);
+    document.body.classList.remove('dragging-material');
+    materialDragState?.ghostEl?.remove();
+    if (!materialDragState) return;
+
+    const name = materialDragState.name;
+    materialDragState = null;
+
+    const canvas = renderer.domElement;
+    const rect = canvas.getBoundingClientRect();
+    const overCanvas = e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+    if (!overCanvas) return;
+
+    const hit = getPaintHit(e.clientX, e.clientY);
+    if (hit) applyMaterialToPiece(hit, name);
+}
+
 const paintRaycaster = new THREE.Raycaster();
 const paintPointerNDC = new THREE.Vector2();
 const paintNormalMatrix = new THREE.Matrix3();
@@ -1492,6 +1979,13 @@ function setupPaintControls() {
         item.addEventListener('click', () => setBrushHardness(item.dataset.hardness));
     });
 
+    document.querySelectorAll('#sidebar [data-material]').forEach(item => {
+        item.addEventListener('pointerdown', (e) => {
+            e.preventDefault();
+            startMaterialDrag(item.dataset.material, e);
+        });
+    });
+
     document.getElementById('brush-size').addEventListener('input', (e) => {
         state.brushSize = parseFloat(e.target.value);
         document.getElementById('brush-size-val').textContent = state.brushSize;
@@ -1563,37 +2057,72 @@ function handleResize() {
 window.addEventListener('resize', handleResize);
 setupPaintControls();
 
+// ─── Model switching ───
+async function ensureModelLoaded(config) {
+    if (state.models[config.id]) return state.models[config.id];
+    if (state.loadingPromises[config.id]) return state.loadingPromises[config.id];
+
+    const promise = (async () => {
+        const loadedObject = await loadModelObject(config);
+        const model = setupModel(loadedObject, config);
+        resetModelToGrey(model);
+        state.models[config.id] = model;
+        return model;
+    })();
+
+    state.loadingPromises[config.id] = promise;
+    try {
+        return await promise;
+    } finally {
+        delete state.loadingPromises[config.id];
+    }
+}
+
+async function showModel(modelId) {
+    const config = getModelConfig(modelId);
+    if (!config) return;
+
+    showLoading(`Loading ${config.label}...`);
+    state.isPaintingStroke = false;
+    state.lastPaintPoint = null;
+
+    let model;
+    try {
+        model = await ensureModelLoaded(config);
+    } catch (error) {
+        console.error(`Could not load ${config.label}:`, error);
+        document.getElementById('loading-text').textContent = `Could not load ${config.label}.`;
+        return;
+    }
+
+    if (state.currentModel) scene.remove(state.currentModel);
+    state.currentModel = model;
+    state.currentModelId = modelId;
+    scene.add(model);
+    fitCamera(model, config);
+
+    document.querySelectorAll('.model-btn').forEach((btn) => {
+        btn.classList.toggle('active', btn.dataset.modelId === modelId);
+    });
+    hideLoading();
+}
+
+document.querySelectorAll('.model-btn').forEach((btn) => {
+    btn.addEventListener('click', () => showModel(btn.dataset.modelId));
+});
+
 // ─── Init ───
 async function init() {
     showLoading('Loading Cannon...');
 
     if (window.location.protocol === 'file:') {
         document.getElementById('loading-text').textContent = 'Run this through a local server. Do not open index.html directly.';
-        console.error('The preset model cannot be loaded from file://. Start a local HTTP server from the project folder.');
+        console.error('Preset models cannot be loaded from file://. Start a local HTTP server from the project folder.');
         animate();
         return;
     }
 
-    try {
-        const url = encodeURI(`${MODEL_CONFIG.path}${MODEL_CONFIG.file}`);
-        const manager = new THREE.LoadingManager();
-        manager.setURLModifier((requestUrl) => redirectFbxTextureUrl(requestUrl, MODEL_CONFIG));
-        const loader = new FBXLoader(manager);
-        const loadedObject = await new Promise((resolve, reject) => loader.load(url, resolve, undefined, reject));
-
-        const model = setupModel(loadedObject);
-        state.currentModel = model;
-        scene.add(model);
-        resetModelToGrey(model);
-        fitCamera(model);
-    } catch (error) {
-        console.error('Could not load the Cannon model:', error);
-        document.getElementById('loading-text').textContent = 'Could not load the Cannon model.';
-        animate();
-        return;
-    }
-
-    hideLoading();
+    await showModel('cannon');
     animate();
 }
 
